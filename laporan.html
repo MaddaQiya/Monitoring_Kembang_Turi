@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Laporan — Kembang Turi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g50:#f0fdf4;--g100:#dcfce7;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+      --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr300:#d1d5db;--gr400:#9ca3af;
+      --gr500:#6b7280;--gr600:#4b5563;--gr700:#374151;--gr900:#111827;
+      --r50:#fef2f2;--r100:#fee2e2;--r500:#ef4444;--r600:#dc2626;
+      --y50:#fefce8;--y400:#facc15;--y500:#eab308;--y600:#ca8a04;
+      --b50:#eff6ff;--b100:#dbeafe;--b600:#2563eb;
+      --o50:#fff7ed;--o100:#ffedd5;--o600:#ea580c;
+      --sidebar-w:240px;--topbar-h:60px;--nav-h:68px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--gr50);color:var(--gr900);}
+
+    /* ── Shell ── */
+    .app-shell{display:flex;flex-direction:column;min-height:100vh;}
+    @media(min-width:768px){.app-shell{flex-direction:row;}}
+
+    /* ── Sidebar ── */
+    .sidebar{display:none;width:var(--sidebar-w);background:#fff;border-right:1px solid var(--gr200);flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;z-index:200;}
+    @media(min-width:768px){.sidebar{display:flex;}}
+    .sb-brand{display:flex;align-items:center;gap:10px;padding:20px 20px 16px;border-bottom:1px solid var(--gr100);text-decoration:none;}
+    .sb-brand-icon{width:36px;height:36px;background:var(--g100);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--g700);font-size:17px;flex-shrink:0;}
+    .sb-brand-name{font-size:15px;font-weight:800;color:var(--g700);}
+    .sb-brand-sub{font-size:10.5px;color:var(--gr400);font-weight:500;}
+    .sb-role-section{padding:14px 16px;border-bottom:1px solid var(--gr100);}
+    .sb-role-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);margin-bottom:6px;}
+    .sb-role-select{width:100%;padding:8px 10px;border:1.5px solid var(--gr200);border-radius:9px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--gr900);background:var(--gr50);outline:none;}
+    .sb-nav{flex:1;padding:14px 12px;}
+    .sb-nav-group-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);padding:0 8px;margin-bottom:6px;margin-top:14px;}
+    .sb-nav-group-label:first-child{margin-top:0;}
+    .sb-link{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr600);text-decoration:none;transition:background .15s,color .15s;margin-bottom:2px;}
+    .sb-link i{font-size:15px;width:18px;text-align:center;}
+    .sb-link:hover{background:var(--gr100);color:var(--gr900);}
+    .sb-link.active{background:var(--g50);color:var(--g700);font-weight:700;}
+    .sb-link.active i{color:var(--g600);}
+    .sb-footer{padding:16px;border-top:1px solid var(--gr100);}
+    .sb-logout{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr500);cursor:pointer;background:none;border:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;}
+    .sb-logout:hover{background:var(--r50);color:var(--r600);}
+
+    /* ── Main ── */
+    .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;padding-bottom:var(--nav-h);}
+    @media(min-width:768px){.main-wrap{padding-bottom:0;}}
+
+    /* ── Topbar ── */
+    .topbar{position:sticky;top:0;z-index:100;height:var(--topbar-h);background:#fff;border-bottom:1px solid var(--gr200);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0;}
+    .back-btn{width:36px;height:36px;background:var(--gr100);border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--gr700);cursor:pointer;text-decoration:none;transition:background .2s;flex-shrink:0;}
+    .back-btn:hover{background:var(--gr200);}
+    @media(min-width:768px){.back-btn{display:none;}}
+    .topbar-title{font-size:16px;font-weight:800;color:var(--gr900);flex:1;}
+    @media(min-width:768px){.topbar-title{font-size:18px;}}
+    .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .notif-btn{width:38px;height:38px;background:var(--gr100);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gr700);font-size:16px;}
+    .avatar-sm{width:30px;height:30px;background:var(--g600);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;}
+
+    /* ── Page content ── */
+    .page-content{padding:16px;flex:1;}
+    @media(min-width:768px){.page-content{padding:24px 28px;}}
+    @media(min-width:1024px){.page-content{padding:28px 32px;}}
+
+    /* ── Filter card ── */
+    .filter-card{background:#fff;border-radius:16px;padding:16px;border:1.5px solid var(--gr200);box-shadow:0 2px 6px rgba(0,0,0,.04);margin-bottom:16px;}
+    @media(min-width:768px){.filter-card{padding:20px;border-radius:18px;}}
+    .filter-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
+    .filter-header-left{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--gr500);}
+    .btn-pdf{
+      display:flex;align-items:center;gap:7px;
+      background:var(--g600);color:#fff;border:none;border-radius:10px;
+      padding:9px 16px;font-size:13px;font-weight:700;
+      font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;
+      box-shadow:0 4px 12px rgba(22,163,74,.3);transition:background .2s,transform .15s;
+      white-space:nowrap;
+    }
+    .btn-pdf:hover{background:var(--g700);transform:translateY(-1px);}
+
+    .filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+    .filter-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px;}
+    .filter-group label{font-size:11px;font-weight:700;color:var(--gr500);letter-spacing:.4px;}
+    .filter-input{padding:10px 12px;border:1.5px solid var(--gr200);border-radius:10px;font-size:13.5px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gr900);background:var(--gr50);outline:none;transition:border-color .2s;}
+    .filter-input:focus{border-color:var(--g500);}
+    .btn-apply{display:flex;align-items:center;gap:7px;background:var(--gr900);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .2s;white-space:nowrap;}
+    .btn-apply:hover{background:var(--gr700);}
+
+    /* ── Summary grid ── */
+    .summary-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;
+    }
+    @media(min-width:768px){gap:14px;margin-bottom:20px;}
+    @media(min-width:1024px){grid-template-columns:repeat(3,1fr);gap:18px;}
+
+    .summary-card{
+      background:#fff;border-radius:14px;padding:14px 12px;
+      border:1.5px solid var(--gr200);box-shadow:0 2px 6px rgba(0,0,0,.04);
+    }
+    @media(min-width:768px){.summary-card{border-radius:16px;padding:18px 16px;}}
+    .sc-icon{font-size:16px;margin-bottom:7px;}
+    @media(min-width:768px){.sc-icon{font-size:20px;}}
+    .sc-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1;margin-bottom:3px;}
+    @media(min-width:640px){.sc-val{font-size:26px;}}
+    @media(min-width:1024px){.sc-val{font-size:30px;}}
+    .sc-val .unit{font-size:11px;font-weight:600;color:var(--gr400);}
+    .sc-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gr500);}
+    @media(min-width:640px){.sc-label{font-size:11px;}}
+    .sc-sub{font-size:10.5px;font-weight:600;margin-top:3px;}
+    @media(min-width:640px){.sc-sub{font-size:12px;}}
+    .sub-ok{color:var(--g600);} .sub-err{color:var(--r600);}
+
+    /* ── Table card ── */
+    .table-card{background:#fff;border-radius:16px;border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.04);overflow:hidden;margin-bottom:16px;}
+    @media(min-width:768px){.table-card{border-radius:18px;margin-bottom:20px;}}
+    .table-card-hdr{padding:14px 16px 12px;border-bottom:1px solid var(--gr100);}
+    @media(min-width:768px){.table-card-hdr{padding:18px 20px 14px;}}
+    .table-card-title{font-size:14px;font-weight:700;}
+    @media(min-width:768px){.table-card-title{font-size:16px;}}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;min-width:500px;}
+    thead tr{background:var(--gr50);border-bottom:1.5px solid var(--gr200);}
+    th{padding:10px 14px;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--gr500);text-transform:uppercase;text-align:left;white-space:nowrap;}
+    @media(min-width:768px){th{padding:12px 18px;font-size:11.5px;}}
+    td{padding:12px 14px;font-size:13px;font-weight:600;color:var(--gr700);border-bottom:1px solid var(--gr100);}
+    @media(min-width:768px){td{padding:14px 18px;font-size:14px;}}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--gr50);}
+
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700;}
+    .badge-ok{background:var(--g100);color:var(--g700);}
+    .badge-crit{background:var(--r50);color:var(--r600);border:1px solid var(--r100);}
+    .badge-warn{background:var(--y50);color:var(--y600);border:1px solid var(--y400);}
+
+    /* Skeleton */
+    .sk-bar{height:14px;background:linear-gradient(90deg,var(--gr200) 25%,var(--gr100) 50%,var(--gr200) 75%);background-size:200% 100%;border-radius:6px;animation:shimmer 1.2s infinite;}
+    @keyframes shimmer{to{background-position:-200% 0}}
+
+    /* Toast */
+    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;z-index:999;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.success{background:var(--g600);color:#fff;}
+
+    /* ── Bottom nav ── */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:#fff;border-top:1px solid var(--gr200);display:flex;align-items:center;justify-content:space-around;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08);}
+    @media(min-width:768px){.bottom-nav{display:none;}}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--gr400);font-size:10px;font-weight:600;padding:8px 0;position:relative;}
+    .nav-item i{font-size:20px;}
+    .nav-item.active{color:var(--g600);}
+    .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--g600);border-radius:0 0 4px 4px;}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sb-brand"><div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div><div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div></a>
+    <div class="sb-role-section"><div class="sb-role-label">Ubah Role (Simulasi)</div><select class="sb-role-select"><option>Manajer</option><option selected>Asisten Kebun</option><option>Pekerja Lahan</option><option>Admin IT</option></select></div>
+    <nav class="sb-nav">
+      <div class="sb-nav-group-label">Menu Utama</div>
+      <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="laporan.html" class="sb-link active"><i class="fa-regular fa-file-lines"></i> Laporan Historis</a>
+      <a href="parameter.html" class="sb-link"><i class="fa-solid fa-sliders"></i> Ambang Batas</a>
+      <div class="sb-nav-group-label">Sistem</div>
+      <a href="status.html" class="sb-link"><i class="fa-solid fa-wave-square"></i> Status Sistem</a>
+      <a href="akun.html" class="sb-link"><i class="fa-solid fa-users"></i> Manajemen Akun</a>
+    </nav>
+    <div class="sb-footer"><button class="sb-logout" onclick="location.href='index.html'"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button></div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <a href="dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+      <span class="topbar-title">Laporan &amp; Evaluasi</span>
+      <div class="topbar-right"><button class="notif-btn"><i class="fa-regular fa-bell"></i></button><div class="avatar-sm">A</div></div>
+    </header>
+    <div class="toast" id="toast"><i class="fa-solid fa-check"></i><span id="toastMsg"></span></div>
+
+    <main class="page-content">
+      <!-- Filter -->
+      <div class="filter-card">
+        <div class="filter-header">
+          <div class="filter-header-left"><i class="fa-regular fa-calendar-days" style="color:var(--g600)"></i> Filter Periode Laporan</div>
+          <button class="btn-pdf" onclick="handleDownload()"><i class="fa-solid fa-download"></i> Unduh PDF</button>
+        </div>
+        <div class="filter-row">
+          <div class="filter-group"><label>Dari Tanggal</label><input type="date" class="filter-input" id="dateFrom"/></div>
+          <div class="filter-group"><label>Sampai Tanggal</label><input type="date" class="filter-input" id="dateTo"/></div>
+          <button class="btn-apply" onclick="applyFilter()"><i class="fa-solid fa-magnifying-glass"></i> Terapkan</button>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="sc-icon" style="color:var(--g600)"><i class="fa-solid fa-temperature-half"></i></div>
+          <div class="sc-val" id="avgSuhu">27.4<span class="unit">°C</span></div>
+          <div class="sc-label">Rata-rata Suhu</div>
+          <div class="sc-sub sub-ok" id="avgSuhuSub">↗ Dalam kondisi ideal</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon" style="color:#3b82f6"><i class="fa-solid fa-droplet"></i></div>
+          <div class="sc-val" id="avgPh">5.9</div>
+          <div class="sc-label">Rata-rata pH</div>
+          <div class="sc-sub sub-ok">↗ Nutrisi stabil</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon" style="color:var(--r500)"><i class="fa-solid fa-bell"></i></div>
+          <div class="sc-val" id="totalAlert">12<span class="unit">x</span></div>
+          <div class="sc-label">Total Anomali</div>
+          <div class="sc-sub sub-err">Naik 8x dari minggu lalu</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-card-hdr"><div class="table-card-title">Rincian Data Harian</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Rentang Suhu</th><th>Suhu Rata-rata</th><th>pH Rata-rata</th><th>Status</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i>Beranda</a>
+  <a href="laporan.html" class="nav-item active"><i class="fa-regular fa-file-lines"></i>Laporan</a>
+  <a href="parameter.html" class="nav-item"><i class="fa-solid fa-sliders"></i>Parameter</a>
+  <a href="status.html" class="nav-item"><i class="fa-solid fa-wave-square"></i>Status</a>
+  <a href="akun.html" class="nav-item"><i class="fa-regular fa-circle-user"></i>Akun</a>
+</nav>
+
+<script>
+  const today=new Date(),wa=new Date(today);wa.setDate(today.getDate()-6);
+  document.getElementById('dateFrom').value=wa.toISOString().split('T')[0];
+  document.getElementById('dateTo').value=today.toISOString().split('T')[0];
+
+  const dataA=[
+    {d:'Sen, 10 Okt',r:'24.1 – 29.8',a:'26.5',p:'5.8',s:'ok',l:'Aman'},
+    {d:'Sel, 11 Okt',r:'24.5 – 31.2',a:'27.8',p:'5.7',s:'crit',l:'Suhu Kritis'},
+    {d:'Rab, 12 Okt',r:'23.9 – 28.5',a:'26.2',p:'5.2',s:'warn',l:'pH Kritis'},
+    {d:'Kam, 13 Okt',r:'24.0 – 29.1',a:'27.0',p:'6.0',s:'ok',l:'Aman'},
+    {d:'Jum, 14 Okt',r:'25.1 – 29.5',a:'27.5',p:'6.1',s:'ok',l:'Aman'},
+  ];
+  const dataB=[
+    {d:'Sab, 08 Okt',r:'25.0 – 30.5',a:'28.1',p:'6.3',s:'ok',l:'Aman'},
+    {d:'Min, 09 Okt',r:'24.3 – 29.9',a:'27.2',p:'5.9',s:'ok',l:'Aman'},
+    {d:'Sen, 10 Okt',r:'23.5 – 32.1',a:'28.8',p:'4.8',s:'crit',l:'Kritis'},
+  ];
+  let toggle=false;
+
+  function badge(s,l){
+    const cls={ok:'badge-ok',crit:'badge-crit',warn:'badge-warn'}[s]||'badge-ok';
+    const ico={ok:'fa-check',crit:'fa-xmark',warn:'fa-triangle-exclamation'}[s]||'fa-check';
+    return `<span class="badge ${cls}"><i class="fa-solid ${ico}"></i>${l}</span>`;
+  }
+
+  function renderTable(data){
+    document.getElementById('tableBody').innerHTML=data.map(r=>`<tr><td>${r.d}</td><td>${r.r} °C</td><td><strong>${r.a} °C</strong></td><td>${r.p}</td><td>${badge(r.s,r.l)}</td></tr>`).join('');
+  }
+
+  function skeleton(){
+    document.getElementById('tableBody').innerHTML=Array(5).fill('').map(()=>`<tr>${Array(5).fill('').map(()=>`<td style="padding:16px 14px"><div class="sk-bar" style="width:${60+Math.random()*40}px"></div></td>`).join('')}</tr>`).join('');
+  }
+
+  function showToast(msg){
+    const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;
+    t.className='toast success';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+  }
+
+  function applyFilter(){skeleton();toggle=!toggle;setTimeout(()=>{renderTable(toggle?dataB:dataA);showToast('✅ Data berhasil dimuat!');},1200);}
+  function handleDownload(){showToast('📄 Laporan PDF sedang disiapkan...');setTimeout(()=>showToast('✅ Laporan berhasil diunduh!'),2000);}
+
+  renderTable(dataA);
+</script>
+</body>
+</html>

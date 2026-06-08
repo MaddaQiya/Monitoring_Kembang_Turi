@@ -1,0 +1,160 @@
+/* ============================================================
+   BASE.CSS — Reset · Tokens · Global Utilities
+   Kembang Turi Digital Greenhouse Monitoring System
+   ============================================================ */
+
+/* ── Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Design Tokens ── */
+:root {
+  /* Green palette */
+  --g50:  #f0fdf4;
+  --g100: #dcfce7;
+  --g200: #bbf7d0;
+  --g500: #22c55e;
+  --g600: #16a34a;
+  --g700: #15803d;
+  --g800: #166534;
+
+  /* Gray palette */
+  --gr50:  #f9fafb;
+  --gr100: #f3f4f6;
+  --gr200: #e5e7eb;
+  --gr300: #d1d5db;
+  --gr400: #9ca3af;
+  --gr500: #6b7280;
+  --gr600: #4b5563;
+  --gr700: #374151;
+  --gr800: #1f2937;
+  --gr900: #111827;
+
+  /* Red / Alert */
+  --r50:  #fef2f2;
+  --r100: #fee2e2;
+  --r500: #ef4444;
+  --r600: #dc2626;
+
+  /* Yellow / Warning */
+  --y50:  #fefce8;
+  --y100: #fef9c3;
+  --y400: #facc15;
+  --y500: #eab308;
+  --y600: #ca8a04;
+
+  /* Blue / Info */
+  --b50:  #eff6ff;
+  --b100: #dbeafe;
+  --b500: #3b82f6;
+  --b600: #2563eb;
+
+  /* Purple */
+  --p50:  #faf5ff;
+  --p100: #f3e8ff;
+  --p600: #9333ea;
+
+  /* Orange */
+  --o50:  #fff7ed;
+  --o100: #ffedd5;
+  --o600: #ea580c;
+
+  /* Layout dimensions */
+  --sidebar-w: 240px;
+  --topbar-h:  60px;
+  --nav-h:     68px;
+
+  /* Typography */
+  --font: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Base styles ── */
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--gr50);
+  color: var(--gr900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shared Animations ── */
+@keyframes spin       { to { transform: rotate(360deg); } }
+@keyframes blink      { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+@keyframes shimmer    { to { background-position: -200% 0; } }
+@keyframes slideUp    {
+  from { opacity: 0; transform: translateY(24px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: .4; transform: scale(1); }
+  50%      { opacity: .9; transform: scale(1.04); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Shared Toast ── */
+.toast {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  opacity: 0;
+  padding: 11px 22px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 999;
+  transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success, .toast.green { background: var(--g600); color: #fff; }
+.toast.error,   .toast.red   { background: var(--r600); color: #fff; }
+
+/* ── Shared skeleton loader ── */
+.sk-bar {
+  height: 14px;
+  background: linear-gradient(90deg, var(--gr200) 25%, var(--gr100) 50%, var(--gr200) 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.2s infinite;
+}
+
+/* ── Status badge helpers ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge-ok     { background: var(--g100);  color: var(--g700); }
+.badge-crit   { background: var(--r50);   color: var(--r600); border: 1px solid var(--r100); }
+.badge-warn   { background: var(--y50);   color: var(--y600); border: 1px solid var(--y400); }
+.badge-orange { background: var(--o100);  color: var(--o600); }
+
+/* ── Color icon wrappers ── */
+.ico-green  { background: var(--g100);  color: var(--g600); }
+.ico-blue   { background: var(--b50);   color: var(--b600); }
+.ico-red    { background: var(--r100);  color: var(--r600); }
+.ico-yellow { background: var(--y50);   color: var(--y600); }
+.ico-gray   { background: var(--gr100); color: var(--gr500); }

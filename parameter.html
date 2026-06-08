@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parameter — Kembang Turi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g50:#f0fdf4;--g100:#dcfce7;--g200:#bbf7d0;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+      --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr300:#d1d5db;--gr400:#9ca3af;
+      --gr500:#6b7280;--gr600:#4b5563;--gr700:#374151;--gr800:#1f2937;--gr900:#111827;
+      --r50:#fef2f2;--r100:#fee2e2;--r500:#ef4444;--r600:#dc2626;
+      --y50:#fefce8;--y100:#fef9c3;--y400:#facc15;--y500:#eab308;--y600:#ca8a04;
+      --b50:#eff6ff;--b100:#dbeafe;--b500:#3b82f6;--b600:#2563eb;
+      --sidebar-w:240px;--topbar-h:60px;--nav-h:68px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--gr50);color:var(--gr900);}
+
+    /* ── App Shell ── */
+    .app-shell{display:flex;flex-direction:column;min-height:100vh;}
+    @media(min-width:768px){.app-shell{flex-direction:row;}}
+
+    /* ── Sidebar ── */
+    .sidebar{
+      display:none;width:var(--sidebar-w);background:#fff;
+      border-right:1px solid var(--gr200);flex-direction:column;
+      position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;z-index:200;
+    }
+    @media(min-width:768px){.sidebar{display:flex;}}
+
+    .sb-brand{display:flex;align-items:center;gap:10px;padding:20px 20px 16px;border-bottom:1px solid var(--gr100);text-decoration:none;}
+    .sb-brand-icon{width:36px;height:36px;background:var(--g100);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--g700);font-size:17px;flex-shrink:0;}
+    .sb-brand-name{font-size:15px;font-weight:800;color:var(--g700);}
+    .sb-brand-sub{font-size:10.5px;color:var(--gr400);font-weight:500;}
+    .sb-role-section{padding:14px 16px;border-bottom:1px solid var(--gr100);}
+    .sb-role-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);margin-bottom:6px;}
+    .sb-role-select{width:100%;padding:8px 10px;border:1.5px solid var(--gr200);border-radius:9px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--gr800);background:var(--gr50);outline:none;cursor:pointer;}
+    .sb-nav{flex:1;padding:14px 12px;}
+    .sb-nav-group-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);padding:0 8px;margin-bottom:6px;margin-top:14px;}
+    .sb-nav-group-label:first-child{margin-top:0;}
+    .sb-link{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr600);text-decoration:none;transition:background .15s,color .15s;margin-bottom:2px;}
+    .sb-link i{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+    .sb-link:hover{background:var(--gr100);color:var(--gr900);}
+    .sb-link.active{background:var(--g50);color:var(--g700);font-weight:700;}
+    .sb-link.active i{color:var(--g600);}
+    .sb-footer{padding:16px;border-top:1px solid var(--gr100);}
+    .sb-logout{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr500);cursor:pointer;transition:all .15s;background:none;border:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;}
+    .sb-logout:hover{background:var(--r50);color:var(--r600);}
+
+    /* ── Main wrap ── */
+    .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;padding-bottom:var(--nav-h);}
+    @media(min-width:768px){.main-wrap{padding-bottom:0;}}
+
+    /* ── Topbar ── */
+    .topbar{
+      position:sticky;top:0;z-index:100;height:var(--topbar-h);
+      background:#fff;border-bottom:1px solid var(--gr200);
+      display:flex;align-items:center;gap:12px;padding:0 16px;
+      box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0;
+    }
+    .back-btn{
+      width:36px;height:36px;background:var(--gr100);border:none;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;font-size:15px;
+      color:var(--gr700);cursor:pointer;text-decoration:none;transition:background .2s;flex-shrink:0;
+    }
+    .back-btn:hover{background:var(--gr200);}
+    /* Hide back button on desktop (use sidebar nav) */
+    @media(min-width:768px){.back-btn{display:none;}}
+
+    .topbar-title{font-size:16px;font-weight:800;color:var(--gr900);flex:1;}
+    @media(min-width:768px){.topbar-title{font-size:18px;}}
+    .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .notif-btn{position:relative;width:38px;height:38px;background:var(--gr100);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gr700);font-size:16px;}
+    .avatar-sm{width:30px;height:30px;background:var(--g600);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;}
+
+    /* ── Page content ── */
+    .page-content{padding:16px;flex:1;}
+    @media(min-width:768px){.page-content{padding:28px 32px;}}
+
+    /* Desktop: two-column form layout */
+    .form-outer{max-width:720px;}
+    @media(min-width:1024px){
+      .form-outer{max-width:none;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+      .form-outer .info-box{grid-column:1/-1;} /* info box spans full width */
+      .form-outer .save-spacer{display:none;}
+    }
+
+    /* ── Info box ── */
+    .info-box{
+      background:var(--y50);border:1.5px solid var(--y400);border-radius:14px;
+      padding:14px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;
+    }
+    .info-box i{color:var(--y600);font-size:18px;margin-top:1px;flex-shrink:0;}
+    .info-box strong{font-size:13px;font-weight:700;color:var(--y600);display:block;margin-bottom:2px;}
+    .info-box p{font-size:12.5px;color:var(--gr700);line-height:1.5;}
+
+    /* ── Config cards ── */
+    .config-card{
+      background:#fff;border-radius:18px;padding:20px;
+      border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.04);
+      margin-bottom:14px;
+    }
+    @media(min-width:1024px){.config-card{margin-bottom:0;}}
+    .config-card-title{
+      font-size:11.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
+      color:var(--gr500);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+    }
+    .config-card-title i{color:var(--g600);font-size:14px;}
+
+    .input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
+    .input-group{display:flex;flex-direction:column;gap:6px;}
+    .input-group label{font-size:11px;font-weight:700;color:var(--gr500);letter-spacing:.5px;text-transform:uppercase;}
+    .input-group.full{grid-column:1/-1;}
+    .number-input{
+      width:100%;padding:13px 14px;border:1.5px solid var(--gr200);border-radius:12px;
+      font-size:16px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;
+      color:var(--gr900);background:var(--gr50);outline:none;transition:border-color .2s,box-shadow .2s;
+    }
+    .number-input:focus{border-color:var(--g500);background:#fff;box-shadow:0 0 0 3px rgba(34,197,94,.12);}
+    .number-input.err{border-color:var(--r500);box-shadow:0 0 0 3px rgba(239,68,68,.12);}
+    .field-err{display:none;font-size:12px;color:var(--r500);font-weight:600;margin-top:2px;}
+    .field-err.show{display:block;}
+
+    .hint-row{
+      display:flex;align-items:flex-start;gap:7px;font-size:12.5px;
+      color:var(--b600);font-weight:500;padding:8px 10px;
+      background:var(--b50);border-radius:8px;border:1px solid var(--b100);
+    }
+    .hint-row.red{color:var(--r600);background:var(--r50);border-color:#fecaca;}
+    .hint-row i{margin-top:1px;flex-shrink:0;}
+
+    /* ── Desktop inline save ── */
+    .desktop-save{display:none;}
+    @media(min-width:768px){
+      .desktop-save{display:flex;justify-content:flex-start;padding:0 32px 28px;}
+    }
+    .btn-save-desktop{
+      display:flex;align-items:center;gap:9px;
+      background:var(--g600);color:#fff;border:none;border-radius:12px;
+      padding:14px 28px;font-size:14.5px;font-weight:700;
+      font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;
+      box-shadow:0 4px 14px rgba(22,163,74,.3);transition:background .2s,transform .15s;
+    }
+    .btn-save-desktop:hover{background:var(--g700);transform:translateY(-1px);}
+
+    /* ── Fixed save bar (mobile only) ── */
+    .save-bar{
+      position:fixed;bottom:var(--nav-h);left:0;right:0;
+      background:linear-gradient(to top,rgba(249,250,251,1) 60%,transparent);
+      padding:10px 16px 10px;z-index:150;
+    }
+    @media(min-width:768px){.save-bar{display:none;}}
+    .btn-save-mobile{
+      width:100%;max-width:720px;margin:0 auto;display:flex;align-items:center;
+      justify-content:center;gap:9px;background:var(--g600);color:#fff;border:none;
+      border-radius:14px;padding:15px;font-size:15px;font-weight:700;
+      font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;
+      box-shadow:0 4px 16px rgba(22,163,74,.35);transition:background .2s;
+    }
+    .btn-save-mobile:hover{background:var(--g700);}
+
+    /* ── Toast ── */
+    .toast{
+      position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;
+      padding:11px 20px;border-radius:50px;font-size:13px;font-weight:700;
+      display:flex;align-items:center;gap:8px;z-index:999;
+      transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;
+      white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2);
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.success{background:var(--g600);color:#fff;}
+    .toast.error{background:var(--r600);color:#fff;}
+
+    /* ── Bottom nav (mobile only) ── */
+    .bottom-nav{
+      position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:#fff;
+      border-top:1px solid var(--gr200);display:flex;align-items:center;
+      justify-content:space-around;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08);
+    }
+    @media(min-width:768px){.bottom-nav{display:none;}}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--gr400);font-size:10px;font-weight:600;padding:8px 0;transition:color .2s;position:relative;}
+    .nav-item i{font-size:20px;}
+    .nav-item.active{color:var(--g600);}
+    .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--g600);border-radius:0 0 4px 4px;}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sb-brand">
+      <div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div>
+      <div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div>
+    </a>
+    <div class="sb-role-section">
+      <div class="sb-role-label">Ubah Role (Simulasi)</div>
+      <select class="sb-role-select"><option>Manajer</option><option selected>Asisten Kebun</option><option>Pekerja Lahan</option><option>Admin IT</option></select>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-nav-group-label">Menu Utama</div>
+      <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="laporan.html" class="sb-link"><i class="fa-regular fa-file-lines"></i> Laporan Historis</a>
+      <a href="parameter.html" class="sb-link active"><i class="fa-solid fa-sliders"></i> Ambang Batas</a>
+      <div class="sb-nav-group-label">Sistem</div>
+      <a href="status.html" class="sb-link"><i class="fa-solid fa-wave-square"></i> Status Sistem</a>
+      <a href="akun.html" class="sb-link"><i class="fa-solid fa-users"></i> Manajemen Akun</a>
+    </nav>
+    <div class="sb-footer"><button class="sb-logout" onclick="location.href='index.html'"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button></div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <a href="dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+      <span class="topbar-title">Pengaturan Parameter</span>
+      <div class="topbar-right">
+        <button class="notif-btn"><i class="fa-regular fa-bell"></i></button>
+        <div class="avatar-sm">A</div>
+      </div>
+    </header>
+
+    <div class="toast" id="toast"><i id="toastIcon" class="fa-solid fa-check"></i><span id="toastMsg"></span></div>
+
+    <main class="page-content">
+      <div class="form-outer">
+        <!-- Info box -->
+        <div class="info-box">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div><strong>Perhatian</strong><p>Perubahan parameter akan memengaruhi logika notifikasi ke seluruh sistem. Pastikan nilai sudah benar sebelum menyimpan.</p></div>
+        </div>
+
+        <!-- pH Card -->
+        <div class="config-card">
+          <div class="config-card-title"><i class="fa-solid fa-droplet"></i> Kadar Nutrisi (pH)</div>
+          <div class="input-row">
+            <div class="input-group">
+              <label for="phMin">Batas Minimum (Min pH)</label>
+              <input type="number" class="number-input" id="phMin" value="5.5" step="0.1" min="0" max="14"/>
+              <span class="field-err" id="phMinErr"></span>
+            </div>
+            <div class="input-group">
+              <label for="phMax">Batas Maksimum (Max pH)</label>
+              <input type="number" class="number-input" id="phMax" value="6.5" step="0.1" min="0" max="14"/>
+              <span class="field-err" id="phMaxErr"></span>
+            </div>
+          </div>
+          <div class="hint-row" id="phHint">
+            <i class="fa-solid fa-circle-info"></i>
+            <span id="phHintTxt">Peringatan dikirim jika pH di luar rentang 5.5 – 6.5.</span>
+          </div>
+        </div>
+
+        <!-- Suhu Card -->
+        <div class="config-card">
+          <div class="config-card-title"><i class="fa-solid fa-temperature-half"></i> Suhu Udara (°C)</div>
+          <div class="input-row">
+            <div class="input-group full">
+              <label for="suhuMax">Batas Maksimum Suhu</label>
+              <input type="number" class="number-input" id="suhuMax" value="30" step="0.5" min="20" max="50"/>
+              <span class="field-err" id="suhuMaxErr">Nilai tidak valid (20–50°C)</span>
+            </div>
+          </div>
+          <div class="hint-row red">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="suhuHintTxt">Peringatan dikirim jika suhu udara melampaui 30°C.</span>
+          </div>
+        </div>
+
+        <div class="save-spacer" style="height:80px"></div>
+      </div>
+    </main>
+
+    <!-- Desktop save button -->
+    <div class="desktop-save">
+      <button class="btn-save-desktop" onclick="handleSave()">
+        <i class="fa-regular fa-floppy-disk"></i> Simpan Perubahan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile fixed save bar -->
+<div class="save-bar">
+  <button class="btn-save-mobile" onclick="handleSave()">
+    <i class="fa-regular fa-floppy-disk"></i> Simpan Perubahan
+  </button>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i>Beranda</a>
+  <a href="laporan.html" class="nav-item"><i class="fa-regular fa-file-lines"></i>Laporan</a>
+  <a href="parameter.html" class="nav-item active"><i class="fa-solid fa-sliders"></i>Parameter</a>
+  <a href="status.html" class="nav-item"><i class="fa-solid fa-wave-square"></i>Status</a>
+  <a href="akun.html" class="nav-item"><i class="fa-regular fa-circle-user"></i>Akun</a>
+</nav>
+
+<script>
+  ['phMin','phMax','suhuMax'].forEach(id=>document.getElementById(id).addEventListener('input',updateHints));
+
+  function updateHints(){
+    const mn=parseFloat(document.getElementById('phMin').value);
+    const mx=parseFloat(document.getElementById('phMax').value);
+    const sm=parseFloat(document.getElementById('suhuMax').value);
+    if(!isNaN(mn)&&!isNaN(mx)&&mn<mx){
+      document.getElementById('phHintTxt').textContent=`Peringatan dikirim jika pH di luar rentang ${mn} – ${mx}.`;
+      document.getElementById('phHint').classList.remove('red');
+    } else document.getElementById('phHint').classList.add('red');
+    if(!isNaN(sm)) document.getElementById('suhuHintTxt').textContent=`Peringatan dikirim jika suhu udara melampaui ${sm}°C.`;
+  }
+
+  function showToast(msg,type){
+    const t=document.getElementById('toast');
+    document.getElementById('toastMsg').textContent=msg;
+    document.getElementById('toastIcon').className=type==='success'?'fa-solid fa-check':'fa-solid fa-triangle-exclamation';
+    t.className=`toast ${type}`;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }
+
+  function clearErr(){['phMin','phMax','suhuMax'].forEach(id=>{document.getElementById(id).classList.remove('err');});['phMinErr','phMaxErr','suhuMaxErr'].forEach(id=>{document.getElementById(id).classList.remove('show');});}
+
+  function handleSave(){
+    clearErr();
+    const mn=parseFloat(document.getElementById('phMin').value);
+    const mx=parseFloat(document.getElementById('phMax').value);
+    const sm=parseFloat(document.getElementById('suhuMax').value);
+    let ok=true;
+    if(isNaN(mn)||mn<0||mn>14){document.getElementById('phMin').classList.add('err');document.getElementById('phMinErr').textContent='Nilai pH tidak valid (0–14)';document.getElementById('phMinErr').classList.add('show');ok=false;}
+    if(isNaN(mx)||mx<0||mx>14){document.getElementById('phMax').classList.add('err');document.getElementById('phMaxErr').textContent='Nilai pH tidak valid (0–14)';document.getElementById('phMaxErr').classList.add('show');ok=false;}
+    if(!isNaN(mn)&&!isNaN(mx)&&mn>=mx){document.getElementById('phMin').classList.add('err');document.getElementById('phMax').classList.add('err');document.getElementById('phMinErr').textContent='pH Min harus lebih kecil dari pH Max';document.getElementById('phMinErr').classList.add('show');showToast('pH Min tidak boleh ≥ pH Max!','error');ok=false;}
+    if(isNaN(sm)||sm<20||sm>50){document.getElementById('suhuMax').classList.add('err');document.getElementById('suhuMaxErr').classList.add('show');ok=false;}
+    if(ok){showToast('✅ Perubahan berhasil disimpan!','success');updateHints();}
+  }
+</script>
+</body>
+</html>

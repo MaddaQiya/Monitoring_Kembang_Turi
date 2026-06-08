@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Status Sistem — Kembang Turi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g50:#f0fdf4;--g100:#dcfce7;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+      --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr300:#d1d5db;--gr400:#9ca3af;
+      --gr500:#6b7280;--gr600:#4b5563;--gr700:#374151;--gr900:#111827;
+      --r50:#fef2f2;--r100:#fee2e2;--r500:#ef4444;--r600:#dc2626;
+      --y50:#fefce8;--y100:#fef9c3;--y400:#facc15;--y600:#ca8a04;
+      --b50:#eff6ff;--b100:#dbeafe;--b600:#2563eb;
+      --sidebar-w:240px;--topbar-h:60px;--nav-h:68px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--gr50);color:var(--gr900);}
+
+    /* ── Shell ── */
+    .app-shell{display:flex;flex-direction:column;min-height:100vh;}
+    @media(min-width:768px){.app-shell{flex-direction:row;}}
+
+    /* ── Sidebar ── */
+    .sidebar{display:none;width:var(--sidebar-w);background:#fff;border-right:1px solid var(--gr200);flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;z-index:200;}
+    @media(min-width:768px){.sidebar{display:flex;}}
+    .sb-brand{display:flex;align-items:center;gap:10px;padding:20px 20px 16px;border-bottom:1px solid var(--gr100);text-decoration:none;}
+    .sb-brand-icon{width:36px;height:36px;background:var(--g100);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--g700);font-size:17px;flex-shrink:0;}
+    .sb-brand-name{font-size:15px;font-weight:800;color:var(--g700);}
+    .sb-brand-sub{font-size:10.5px;color:var(--gr400);font-weight:500;}
+    .sb-role-section{padding:14px 16px;border-bottom:1px solid var(--gr100);}
+    .sb-role-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);margin-bottom:6px;}
+    .sb-role-select{width:100%;padding:8px 10px;border:1.5px solid var(--gr200);border-radius:9px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--gr900);background:var(--gr50);outline:none;}
+    .sb-nav{flex:1;padding:14px 12px;}
+    .sb-nav-group-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);padding:0 8px;margin-bottom:6px;margin-top:14px;}
+    .sb-nav-group-label:first-child{margin-top:0;}
+    .sb-link{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr600);text-decoration:none;transition:background .15s,color .15s;margin-bottom:2px;}
+    .sb-link i{font-size:15px;width:18px;text-align:center;}
+    .sb-link:hover{background:var(--gr100);color:var(--gr900);}
+    .sb-link.active{background:var(--g50);color:var(--g700);font-weight:700;}
+    .sb-link.active i{color:var(--g600);}
+    .sb-footer{padding:16px;border-top:1px solid var(--gr100);}
+    .sb-logout{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr500);cursor:pointer;background:none;border:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;}
+    .sb-logout:hover{background:var(--r50);color:var(--r600);}
+
+    /* ── Main ── */
+    .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;padding-bottom:var(--nav-h);}
+    @media(min-width:768px){.main-wrap{padding-bottom:0;}}
+
+    /* ── Topbar ── */
+    .topbar{position:sticky;top:0;z-index:100;height:var(--topbar-h);background:#fff;border-bottom:1px solid var(--gr200);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0;}
+    .back-btn{width:36px;height:36px;background:var(--gr100);border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--gr700);cursor:pointer;text-decoration:none;transition:background .2s;flex-shrink:0;}
+    .back-btn:hover{background:var(--gr200);}
+    @media(min-width:768px){.back-btn{display:none;}}
+    .topbar-title{font-size:16px;font-weight:800;flex:1;}
+    @media(min-width:768px){.topbar-title{font-size:18px;}}
+    .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .notif-btn{width:38px;height:38px;background:var(--gr100);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gr700);font-size:16px;}
+    .avatar-sm{width:30px;height:30px;background:var(--g600);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;}
+
+    /* ── Content ── */
+    .page-content{padding:16px;flex:1;}
+    @media(min-width:768px){.page-content{padding:24px 28px;}}
+    @media(min-width:1024px){.page-content{padding:28px 32px;}}
+
+    /* ── Hardware section ── */
+    .hw-section{background:#fff;border-radius:18px;border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.04);overflow:hidden;margin-bottom:16px;}
+    .hw-section-hdr{
+      display:flex;align-items:center;gap:12px;
+      padding:16px 16px 14px;border-bottom:1px solid var(--gr100);
+    }
+    @media(min-width:768px){.hw-section-hdr{padding:18px 20px 16px;}}
+    .hw-hdr-icon{width:38px;height:38px;background:var(--b50);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--b600);font-size:17px;flex-shrink:0;}
+    .hw-hdr-title{font-size:14px;font-weight:800;color:var(--gr900);}
+    @media(min-width:768px){.hw-hdr-title{font-size:16px;}}
+    .hw-hdr-sub{font-size:11.5px;color:var(--gr400);margin-top:1px;}
+
+    /* Grid: 1 col mobile → 3 col md+ */
+    .hw-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      border-top:1px solid var(--gr100);
+    }
+    @media(min-width:480px){.hw-grid{grid-template-columns:1fr 1fr;}}
+    @media(min-width:768px){.hw-grid{grid-template-columns:repeat(3,1fr);}}
+
+    .hw-cell{
+      padding:16px;border-bottom:1px solid var(--gr100);
+      border-right:0;
+    }
+    @media(min-width:480px){
+      .hw-cell{border-right:1px solid var(--gr100);}
+      .hw-cell:nth-child(2n){border-right:0;}
+    }
+    @media(min-width:768px){
+      .hw-cell{border-right:1px solid var(--gr100);border-bottom:none;}
+      .hw-cell:last-child{border-right:0;}
+    }
+    .hw-cell.err{background:var(--r50);}
+    .hw-cell-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+    .hw-cell-lbl{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;}
+    .lbl-ok{color:var(--gr500);} .lbl-err{color:var(--r600);}
+    .hw-cell-icon{font-size:16px;}
+    .ico-ok{color:var(--g500);} .ico-err{color:var(--r500);}
+    .hw-cell-val{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+    @media(min-width:768px){.hw-cell-val{font-size:26px;}}
+    .val-ok{color:var(--g600);} .val-err{color:var(--r600);}
+    .hw-cell-sub{font-size:11px;color:var(--gr400);margin-top:3px;font-weight:500;}
+    .sub-err-txt{color:var(--r500);font-weight:600;}
+
+    /* ── Log list ── */
+    .log-card{background:#fff;border-radius:18px;border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.04);overflow:hidden;}
+    .log-card-hdr{padding:14px 16px 12px;border-bottom:1px solid var(--gr100);display:flex;align-items:center;justify-content:space-between;}
+    @media(min-width:768px){.log-card-hdr{padding:18px 20px 14px;}}
+    .log-card-title{font-size:14px;font-weight:700;}
+    @media(min-width:768px){.log-card-title{font-size:16px;}}
+    .log-refresh{background:none;border:1px solid var(--gr200);border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:600;color:var(--gr500);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .2s;}
+    .log-refresh:hover{background:var(--gr100);}
+
+    .log-item{padding:13px 16px;border-bottom:1px solid var(--gr100);display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .15s;}
+    .log-item:last-child{border-bottom:none;}
+    .log-item:hover{background:var(--gr50);}
+    @media(min-width:768px){.log-item{padding:14px 20px;}}
+    .log-ico-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+    @media(min-width:768px){.log-ico-wrap{width:40px;height:40px;font-size:17px;}}
+    .ico-red{background:var(--r50);color:var(--r600);}
+    .ico-yellow{background:var(--y50);color:var(--y600);}
+    .ico-blue{background:var(--b50);color:var(--b600);}
+    .ico-green{background:var(--g50);color:var(--g600);}
+    .ico-gray{background:var(--gr100);color:var(--gr500);}
+    .log-body{flex:1;min-width:0;}
+    .log-src{font-size:12.5px;font-weight:700;color:var(--gr900);margin-bottom:2px;}
+    @media(min-width:768px){.log-src{font-size:13.5px;}}
+    .log-msg{font-size:12px;color:var(--gr500);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    @media(min-width:768px){.log-msg{font-size:13px;white-space:normal;}}
+    .log-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+    .log-time{font-size:11px;color:var(--gr400);font-weight:500;white-space:nowrap;}
+    .log-tag{font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:50px;text-transform:uppercase;}
+    .tag-err{background:var(--r100);color:var(--r600);}
+    .tag-info{background:var(--b100);color:var(--b600);}
+    .tag-ok{background:var(--g100);color:var(--g700);}
+
+    /* ── Modal ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);}
+    .modal-overlay.show{opacity:1;pointer-events:all;}
+    @media(min-width:768px){.modal-overlay{align-items:center;}}
+    .modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:560px;padding:8px 20px 32px;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.2,.64,1);max-height:80vh;overflow-y:auto;}
+    @media(min-width:768px){.modal-sheet{border-radius:20px;transform:translateY(0) scale(.95);opacity:0;transition:transform .3s,opacity .25s;padding:28px;}}
+    .modal-overlay.show .modal-sheet{transform:translateY(0);opacity:1;}
+    @media(min-width:768px){.modal-overlay.show .modal-sheet{transform:scale(1);}}
+    .modal-handle{width:36px;height:4px;background:var(--gr300);border-radius:2px;margin:10px auto 16px;}
+    @media(min-width:768px){.modal-handle{display:none;}}
+    .modal-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    .modal-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+    .modal-title{font-size:17px;font-weight:800;color:var(--gr900);}
+    .modal-sub{font-size:12px;color:var(--gr500);margin-top:2px;}
+    .mdivider{height:1px;background:var(--gr100);margin:12px 0;}
+    .detail-row{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 0;gap:12px;}
+    .detail-key{font-size:12px;color:var(--gr500);font-weight:600;flex-shrink:0;min-width:110px;}
+    .detail-val{font-size:13px;color:var(--gr900);font-weight:700;text-align:right;}
+    .modal-desc{background:var(--gr50);border-radius:10px;padding:12px;font-size:13px;color:var(--gr700);line-height:1.6;margin-top:12px;}
+    .modal-close{width:100%;padding:14px;margin-top:16px;background:var(--gr900);color:#fff;border:none;border-radius:12px;font-size:14.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .2s;}
+    .modal-close:hover{background:var(--gr700);}
+
+    /* ── Bottom nav ── */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:#fff;border-top:1px solid var(--gr200);display:flex;align-items:center;justify-content:space-around;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08);}
+    @media(min-width:768px){.bottom-nav{display:none;}}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--gr400);font-size:10px;font-weight:600;padding:8px 0;position:relative;}
+    .nav-item i{font-size:20px;}
+    .nav-item.active{color:var(--g600);}
+    .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--g600);border-radius:0 0 4px 4px;}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sb-brand"><div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div><div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div></a>
+    <div class="sb-role-section"><div class="sb-role-label">Ubah Role (Simulasi)</div><select class="sb-role-select"><option>Manajer</option><option>Asisten Kebun</option><option>Pekerja Lahan</option><option selected>Admin IT</option></select></div>
+    <nav class="sb-nav">
+      <div class="sb-nav-group-label">Menu Utama</div>
+      <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="laporan.html" class="sb-link"><i class="fa-regular fa-file-lines"></i> Laporan Historis</a>
+      <a href="parameter.html" class="sb-link"><i class="fa-solid fa-sliders"></i> Ambang Batas</a>
+      <div class="sb-nav-group-label">Sistem</div>
+      <a href="status.html" class="sb-link active"><i class="fa-solid fa-wave-square"></i> Status Sistem</a>
+      <a href="akun.html" class="sb-link"><i class="fa-solid fa-users"></i> Manajemen Akun</a>
+    </nav>
+    <div class="sb-footer"><button class="sb-logout" onclick="location.href='index.html'"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button></div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <a href="dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+      <span class="topbar-title">Status &amp; Log Peristiwa</span>
+      <div class="topbar-right"><button class="notif-btn"><i class="fa-regular fa-bell"></i></button><div class="avatar-sm">A</div></div>
+    </header>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+      <div class="modal-sheet">
+        <div class="modal-handle" onclick="closeModalDirect()"></div>
+        <div class="modal-hdr">
+          <div class="modal-ico" id="mIco"></div>
+          <div><div class="modal-title" id="mTitle"></div><div class="modal-sub" id="mSub"></div></div>
+        </div>
+        <div class="mdivider"></div>
+        <div id="mDetails"></div>
+        <div class="modal-desc" id="mDesc"></div>
+        <button class="modal-close" onclick="closeModalDirect()"><i class="fa-solid fa-xmark" style="margin-right:8px"></i>Tutup</button>
+      </div>
+    </div>
+
+    <main class="page-content">
+      <!-- Hardware section -->
+      <div class="hw-section">
+        <div class="hw-section-hdr">
+          <div class="hw-hdr-icon"><i class="fa-solid fa-wave-square"></i></div>
+          <div><div class="hw-hdr-title">Status Server &amp; Perangkat</div><div class="hw-hdr-sub">Monitoring kesehatan infrastruktur IoT</div></div>
+        </div>
+        <div class="hw-grid">
+          <div class="hw-cell">
+            <div class="hw-cell-hdr"><span class="hw-cell-lbl lbl-ok">Server Utama Database</span><i class="fa-solid fa-circle-check hw-cell-icon ico-ok"></i></div>
+            <div class="hw-cell-val val-ok">Online</div>
+            <div class="hw-cell-sub">Latency: 12ms</div>
+          </div>
+          <div class="hw-cell">
+            <div class="hw-cell-hdr"><span class="hw-cell-lbl lbl-ok">Sensor Node (GH-1)</span><i class="fa-solid fa-wifi hw-cell-icon ico-ok"></i></div>
+            <div class="hw-cell-val val-ok">Aktif</div>
+            <div class="hw-cell-sub">Sinyal: -62 dBm</div>
+          </div>
+          <div class="hw-cell err">
+            <div class="hw-cell-hdr"><span class="hw-cell-lbl lbl-err">Sensor Node (GH-2)</span><i class="fa-solid fa-wifi-slash hw-cell-icon ico-err"></i></div>
+            <div class="hw-cell-val val-err">Terputus</div>
+            <div class="hw-cell-sub sub-err-txt">Gagal terhubung ke gateway</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Log list -->
+      <div class="log-card">
+        <div class="log-card-hdr">
+          <span class="log-card-title">Log Peristiwa Sistem</span>
+          <button class="log-refresh"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+        </div>
+
+        <div class="log-item" onclick="openModal(0)">
+          <div class="log-ico-wrap ico-red"><i class="fa-solid fa-wifi-slash"></i></div>
+          <div class="log-body"><div class="log-src">Node GH-2</div><div class="log-msg">Timeout mengambil data sensor. Perangkat kehilangan koneksi LoRa.</div></div>
+          <div class="log-meta"><span class="log-time">Hari ini, 10:45</span><span class="log-tag tag-err">ERROR</span></div>
+        </div>
+        <div class="log-item" onclick="openModal(1)">
+          <div class="log-ico-wrap ico-blue"><i class="fa-solid fa-bell"></i></div>
+          <div class="log-body"><div class="log-src">Sistem Notifikasi</div><div class="log-msg">Mengirimkan WhatsApp Alert ke Asisten Kebun (Budi).</div></div>
+          <div class="log-meta"><span class="log-time">Hari ini, 10:42</span><span class="log-tag tag-info">INFO</span></div>
+        </div>
+        <div class="log-item" onclick="openModal(2)">
+          <div class="log-ico-wrap ico-yellow"><i class="fa-solid fa-temperature-full"></i></div>
+          <div class="log-body"><div class="log-src">Sensor Suhu GH-1</div><div class="log-msg">Suhu melampaui batas maksimum 30°C. Nilai terukur: 31.4°C.</div></div>
+          <div class="log-meta"><span class="log-time">Hari ini, 14:00</span><span class="log-tag tag-err">ALERT</span></div>
+        </div>
+        <div class="log-item" onclick="openModal(3)">
+          <div class="log-ico-wrap ico-green"><i class="fa-solid fa-database"></i></div>
+          <div class="log-body"><div class="log-src">Database D1</div><div class="log-msg">Backup rutin harian berhasil diselesaikan tanpa error.</div></div>
+          <div class="log-meta"><span class="log-time">Hari ini, 09:00</span><span class="log-tag tag-ok">OK</span></div>
+        </div>
+        <div class="log-item" onclick="openModal(4)">
+          <div class="log-ico-wrap ico-blue"><i class="fa-solid fa-sliders"></i></div>
+          <div class="log-body"><div class="log-src">Auth Service</div><div class="log-msg">Parameter pH diperbarui oleh Manajer. pH Max diubah ke 6.5.</div></div>
+          <div class="log-meta"><span class="log-time">Kemarin, 15:30</span><span class="log-tag tag-info">INFO</span></div>
+        </div>
+        <div class="log-item" onclick="openModal(5)">
+          <div class="log-ico-wrap ico-gray"><i class="fa-solid fa-right-to-bracket"></i></div>
+          <div class="log-body"><div class="log-src">Auth Service</div><div class="log-msg">User 'manajer_pusat' login via Desktop. IP: 192.168.1.10.</div></div>
+          <div class="log-meta"><span class="log-time">Kemarin, 08:15</span><span class="log-tag tag-info">INFO</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i>Beranda</a>
+  <a href="laporan.html" class="nav-item"><i class="fa-regular fa-file-lines"></i>Laporan</a>
+  <a href="parameter.html" class="nav-item"><i class="fa-solid fa-sliders"></i>Parameter</a>
+  <a href="status.html" class="nav-item active"><i class="fa-solid fa-wave-square"></i>Status</a>
+  <a href="akun.html" class="nav-item"><i class="fa-regular fa-circle-user"></i>Akun</a>
+</nav>
+
+<script>
+  const details=[
+    {title:'Koneksi GH-2 Terputus',sub:'Node GH-2 · Sensor LoRa',ibg:'#fef2f2',icl:'#dc2626',ico:'fa-solid fa-wifi-slash',rows:[['Waktu','Hari ini, 10:45:22'],['Node','Sensor Node GH-2'],['Kode Error','LORA_TIMEOUT_003'],['Percobaan Ulang','3x gagal'],['Status','Belum Terselesaikan']],desc:'Perangkat GH-2 gagal mengirimkan data ke gateway LoRa setelah 3 percobaan ulang otomatis. Kemungkinan penyebab: kabel antena longgar atau interferensi RF. Segera periksa fisik perangkat di lokasi GH-2.'},
+    {title:'WhatsApp Alert Terkirim',sub:'Sistem Notifikasi · WhatsApp API',ibg:'#eff6ff',icl:'#2563eb',ico:'fa-solid fa-comment-dots',rows:[['Waktu','Hari ini, 10:42:05'],['Penerima','Budi Santoso (Asisten)'],['Pemicu','Suhu > 30°C di GH-1'],['Status Kirim','Delivered ✓✓']],desc:'Notifikasi otomatis dikirim ke asisten kebun karena suhu melampaui ambang batas yang telah dikonfigurasi. Sistem berhasil mengirimkan pesan melalui WhatsApp Business API dalam 2.3 detik.'},
+    {title:'Suhu Kritis Terdeteksi',sub:'Sensor Suhu GH-1 · Alert Sistem',ibg:'#fefce8',icl:'#ca8a04',ico:'fa-solid fa-temperature-full',rows:[['Waktu','Hari ini, 14:00:11'],['Nilai Terukur','31.4°C'],['Ambang Batas','30.0°C'],['Selisih','+1.4°C'],['Durasi','±18 menit']],desc:'Sensor suhu pada GH-1 mendeteksi kenaikan suhu signifikan melebihi batas aman selama sekitar 18 menit. Disarankan untuk memeriksa ventilasi dan sistem pendingin greenhouse.'},
+    {title:'Backup Database Sukses',sub:'Database D1 · Backup Rutin',ibg:'#f0fdf4',icl:'#16a34a',ico:'fa-solid fa-database',rows:[['Waktu','Hari ini, 09:00:00'],['Database','gh_monitoring_prod'],['Ukuran Backup','2.4 MB'],['Durasi','3.2 detik'],['Destinasi','Cloud Storage (Encrypted)']],desc:'Proses backup rutin harian berhasil diselesaikan tanpa error. Semua data sensor, log, dan konfigurasi berhasil dicadangkan ke cloud storage terenkripsi.'},
+    {title:'Parameter pH Diperbarui',sub:'Auth Service · Perubahan Config',ibg:'#eff6ff',icl:'#2563eb',ico:'fa-solid fa-sliders',rows:[['Waktu','Kemarin, 15:30:44'],['Operator','manajer_pusat (Dewi Lestari)'],['Field','pH Maksimum'],['Nilai Lama','7.0'],['Nilai Baru','6.5']],desc:'Manajer telah memperbarui konfigurasi parameter ambang batas pH. Perubahan ini langsung berlaku dan akan mempengaruhi logika notifikasi sistem.'},
+    {title:'Login Berhasil',sub:'Auth Service · Session Log',ibg:'#f3f4f6',icl:'#6b7280',ico:'fa-solid fa-right-to-bracket',rows:[['Waktu','Kemarin, 08:15:33'],['Username','manajer_pusat'],['IP Address','192.168.1.10'],['Platform','Desktop / Chrome 119'],['Lokasi','Kantor Pusat, Yogyakarta']],desc:'Autentikasi pengguna berhasil. Token sesi akan kedaluwarsa dalam 8 jam.'},
+  ];
+
+  function openModal(i){
+    const d=details[i];
+    document.getElementById('mTitle').textContent=d.title;
+    document.getElementById('mSub').textContent=d.sub;
+    const ic=document.getElementById('mIco');
+    ic.style.background=d.ibg;ic.style.color=d.icl;
+    ic.innerHTML=`<i class="${d.ico}"></i>`;
+    document.getElementById('mDetails').innerHTML=d.rows.map((r,idx)=>`${idx?'<div style="height:1px;background:#f3f4f6"></div>':''}<div class="detail-row"><span class="detail-key">${r[0]}</span><span class="detail-val">${r[1]}</span></div>`).join('');
+    document.getElementById('mDesc').textContent=d.desc;
+    document.getElementById('modalOverlay').classList.add('show');
+    document.body.style.overflow='hidden';
+  }
+  function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+  function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('show');document.body.style.overflow='';}
+</script>
+</body>
+</html>

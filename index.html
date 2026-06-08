@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Kembang Turi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --font:'Plus Jakarta Sans',sans-serif;
+      --g50:#f0fdf4;--g100:#dcfce7;--g200:#bbf7d0;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+      --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr400:#9ca3af;--gr500:#6b7280;
+      --gr700:#374151;--gr900:#111827;
+      --r50:#fef2f2;--r500:#ef4444;
+    }
+    html,body{min-height:100%;font-family:var(--font);-webkit-font-smoothing:antialiased;}
+
+    .page-wrap{min-height:100vh;display:flex;flex-direction:column;}
+    @media(min-width:768px){.page-wrap{flex-direction:row;}}
+
+    /* Brand panel */
+    .brand-panel{display:none;}
+    @media(min-width:768px){
+      .brand-panel{width:42%;background:linear-gradient(160deg,#166534 0%,#15803d 40%,#16a34a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 48px;position:relative;overflow:hidden;flex-shrink:0;}
+      .brand-panel::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;background:rgba(255,255,255,.06);border-radius:50%;}
+      .brand-panel::after{content:'';position:absolute;bottom:-60px;left:-60px;width:260px;height:260px;background:rgba(255,255,255,.05);border-radius:50%;}
+    }
+    @media(min-width:1280px){.brand-panel{width:46%;}}
+    .bp-logo{width:80px;height:80px;background:rgba(255,255,255,.15);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;margin-bottom:28px;box-shadow:0 8px 32px rgba(0,0,0,.2);position:relative;z-index:1;}
+    .bp-title{font-size:30px;font-weight:800;color:#fff;text-align:center;letter-spacing:-.5px;margin-bottom:10px;position:relative;z-index:1;}
+    .bp-sub{font-size:15px;color:rgba(255,255,255,.75);text-align:center;line-height:1.6;max-width:280px;position:relative;z-index:1;}
+    .bp-features{margin-top:40px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:280px;position:relative;z-index:1;}
+    .bp-feature{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.1);border-radius:12px;padding:12px 16px;}
+    .bp-feature i{color:rgba(255,255,255,.9);font-size:16px;flex-shrink:0;}
+    .bp-feature span{font-size:13px;color:rgba(255,255,255,.85);font-weight:600;}
+
+    /* Login bg */
+    .login-bg{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:linear-gradient(135deg,#e8f5e9 0%,#f0fdf4 35%,#e0f7fa 65%,#f0fdf4 100%);position:relative;overflow:hidden;}
+    .login-bg::before{content:'';position:fixed;top:-150px;right:-150px;width:500px;height:500px;background:radial-gradient(circle,rgba(34,197,94,.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;}
+    .login-bg::after{content:'';position:fixed;bottom:-100px;left:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(96,165,250,.14) 0%,transparent 65%);border-radius:50%;pointer-events:none;}
+    @media(min-width:768px){.login-bg{padding:60px 48px;background:var(--gr50);}.login-bg::before,.login-bg::after{display:none;}}
+
+    /* Card */
+    .login-card{background:#fff;border-radius:24px;padding:36px 28px 32px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);animation:slideUp .45s cubic-bezier(.34,1.4,.64,1) both;}
+    @media(min-width:768px){.login-card{border-radius:20px;padding:40px 36px 36px;box-shadow:0 4px 24px rgba(0,0,0,.08);}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+
+    /* Logo row (mobile) */
+    .logo-row{display:flex;flex-direction:column;align-items:center;margin-bottom:28px;}
+    @media(min-width:768px){.logo-row{display:none;}}
+    .logo-icon{width:68px;height:68px;background:var(--g100);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--g600);margin-bottom:14px;position:relative;}
+    .logo-pulse{position:absolute;inset:-5px;border-radius:22px;border:2px solid var(--g200);animation:pulse 2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.9;transform:scale(1.04)}}
+    .logo-row h1{font-size:21px;font-weight:800;color:var(--gr900);letter-spacing:-.4px;}
+    .logo-row p{font-size:12.5px;color:var(--gr500);margin-top:3px;}
+
+    /* Desktop heading */
+    .card-desktop-title{display:none;}
+    @media(min-width:768px){
+      .card-desktop-title{display:block;font-size:22px;font-weight:800;color:var(--gr900);margin-bottom:6px;letter-spacing:-.4px;}
+      .card-desktop-sub{font-size:13.5px;color:var(--gr500);margin-bottom:24px;}
+    }
+
+    /* Inputs */
+    .form-group{margin-bottom:12px;}
+    .input-wrap{position:relative;display:flex;align-items:center;}
+    .input-wrap .ico{position:absolute;left:14px;color:var(--gr400);font-size:14px;pointer-events:none;z-index:1;}
+    .input-wrap input,
+    .input-wrap select{
+      width:100%;padding:13px 14px 13px 42px;
+      border:1.5px solid var(--gr200);border-radius:12px;
+      font-size:14.5px;font-family:var(--font);
+      background:var(--gr50);color:var(--gr900);outline:none;
+      transition:border-color .2s,box-shadow .2s,background .2s;
+      -webkit-appearance:none;appearance:none;
+    }
+    .input-wrap input:focus,
+    .input-wrap select:focus{border-color:var(--g500);background:#fff;box-shadow:0 0 0 3px rgba(34,197,94,.12);}
+    .input-wrap input::placeholder{color:var(--gr400);}
+
+    /* Chevron for select */
+    .select-arrow{position:absolute;right:14px;color:var(--gr400);font-size:12px;pointer-events:none;}
+
+    .toggle-pass{position:absolute;right:13px;background:none;border:none;cursor:pointer;color:var(--gr400);padding:4px;font-size:14px;transition:color .2s;}
+    .toggle-pass:hover{color:var(--g600);}
+
+    .form-opts{display:flex;align-items:center;justify-content:space-between;margin:4px 0 16px;}
+    .chk-label{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--gr500);user-select:none;}
+    .chk-label input{width:15px;height:15px;accent-color:var(--g600);cursor:pointer;}
+    .forgot{font-size:13px;color:var(--g700);text-decoration:none;font-weight:600;transition:color .2s;}
+    .forgot:hover{color:var(--g500);text-decoration:underline;}
+
+    /* Role info */
+    .role-hint{display:none;align-items:center;gap:8px;background:var(--g50);border:1.5px solid var(--g200);color:var(--g700);font-size:12px;font-weight:600;padding:9px 12px;border-radius:10px;margin-bottom:14px;}
+    .role-hint.show{display:flex;}
+    .role-hint i{color:var(--g600);font-size:13px;flex-shrink:0;}
+
+    /* Error */
+    .err-msg{display:none;align-items:center;gap:8px;background:var(--r50);border:1px solid #fecaca;color:var(--r500);font-size:13px;font-weight:600;padding:10px 14px;border-radius:10px;margin-bottom:14px;animation:shake .4s ease;}
+    .err-msg.show{display:flex;}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+    /* Button */
+    .btn-login{width:100%;padding:15px;background:var(--g600);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 14px rgba(22,163,74,.35);}
+    .btn-login:hover{background:var(--g700);transform:translateY(-1px);}
+    .btn-login:active{transform:none;}
+    .btn-login.loading{opacity:.85;pointer-events:none;}
+    .spinner{display:none;width:17px;height:17px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+    .spinner.show{display:block;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .version{text-align:center;margin-top:20px;font-size:11px;color:var(--gr400);}
+    .help-btn{position:fixed;bottom:20px;right:20px;width:40px;height:40px;background:var(--gr700);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:background .2s;z-index:99;}
+    .help-btn:hover{background:var(--gr900);}
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <aside class="brand-panel">
+    <div class="bp-logo"><i class="fa-solid fa-seedling"></i></div>
+    <div class="bp-title">PT Kembang Turi</div>
+    <p class="bp-sub">Sistem Monitoring Digital Greenhouse Melon — presisi, real-time, terpercaya.</p>
+    <div class="bp-features">
+      <div class="bp-feature"><i class="fa-solid fa-temperature-half"></i><span>Monitoring Suhu &amp; pH Real-time</span></div>
+      <div class="bp-feature"><i class="fa-solid fa-database"></i><span>Tersinkron Firebase Realtime DB</span></div>
+      <div class="bp-feature"><i class="fa-solid fa-shield-halved"></i><span>Role-Based Access Control (RBAC)</span></div>
+      <div class="bp-feature"><i class="fa-solid fa-chart-line"></i><span>Laporan &amp; Analitik Harian</span></div>
+    </div>
+  </aside>
+
+  <div class="login-bg">
+    <div class="login-card">
+      <div class="logo-row">
+        <div class="logo-icon"><div class="logo-pulse"></div><i class="fa-solid fa-seedling"></i></div>
+        <h1>Kembang Turi</h1>
+        <p>Sistem Monitoring Terpadu</p>
+      </div>
+      <div class="card-desktop-title">Selamat Datang 👋</div>
+      <p class="card-desktop-sub">Masuk ke akun Kembang Turi Anda</p>
+
+      <!-- Username -->
+      <div class="form-group">
+        <div class="input-wrap">
+          <i class="fa-regular fa-user ico"></i>
+          <input type="text" id="username" placeholder="Nama pengguna" autocomplete="username"/>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock ico"></i>
+          <input type="password" id="password" placeholder="Kata sandi" autocomplete="current-password"/>
+          <button class="toggle-pass" onclick="togglePass()" type="button">
+            <i class="fa-regular fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Role selector -->
+      <div class="form-group">
+        <div class="input-wrap">
+          <i class="fa-solid fa-user-tag ico"></i>
+          <select id="roleSelect" onchange="onRoleChange()">
+            <option value="">— Pilih Role —</option>
+            <option value="Manajer">Manajer</option>
+            <option value="Asisten Kebun">Asisten Kebun</option>
+            <option value="Pekerja Lahan">Pekerja Lahan</option>
+            <option value="Admin IT">Admin IT</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow"></i>
+        </div>
+      </div>
+
+      <!-- Role access hint -->
+      <div class="role-hint" id="roleHint">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="roleHintText"></span>
+      </div>
+
+      <div class="form-opts">
+        <label class="chk-label"><input type="checkbox" id="remember"/> Ingat Saya</label>
+        <a href="#" class="forgot">Lupa Kata Sandi?</a>
+      </div>
+
+      <div class="err-msg" id="errMsg">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="errText">Semua field wajib diisi.</span>
+      </div>
+
+      <button class="btn-login" id="btnLogin" onclick="handleLogin()">
+        <div class="spinner" id="spinner"></div>
+        <i class="fa-solid fa-right-to-bracket" id="btnIcon"></i>
+        <span id="btnText">Masuk Sistem</span>
+      </button>
+
+      <p class="version">v2.1.0 &nbsp;·&nbsp; PT Kembang Turi &copy; 2025 &nbsp;·&nbsp; RBAC Enabled</p>
+    </div>
+  </div>
+</div>
+
+<div class="help-btn" title="Bantuan"><i class="fa-solid fa-question"></i></div>
+
+<!-- Load auth-guard first so AuthGuard object is available -->
+<script src="auth-guard.js"></script>
+<script>
+  /* Role access hints shown below selector */
+  const HINTS = {
+    'Manajer':       'Akses: Dashboard · Laporan · Ambang Batas',
+    'Asisten Kebun': 'Akses: Dashboard · Laporan · Ambang Batas',
+    'Pekerja Lahan': 'Akses: Dashboard saja',
+    'Admin IT':      'Akses: Status Sistem · Manajemen Akun',
+  };
+
+  function onRoleChange() {
+    const role  = document.getElementById('roleSelect').value;
+    const hint  = document.getElementById('roleHint');
+    const htext = document.getElementById('roleHintText');
+    if (role && HINTS[role]) {
+      htext.textContent = HINTS[role];
+      hint.classList.add('show');
+    } else {
+      hint.classList.remove('show');
+    }
+  }
+
+  function togglePass() {
+    const inp  = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('fa-eye');
+    icon.classList.toggle('fa-eye-slash');
+  }
+
+  function handleLogin() {
+    const nama = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const role = document.getElementById('roleSelect').value;
+    const err  = document.getElementById('errMsg');
+    const et   = document.getElementById('errText');
+    err.classList.remove('show');
+
+    if (!nama)  { et.textContent='Nama pengguna wajib diisi.';     err.classList.add('show'); return; }
+    if (!pass)  { et.textContent='Kata sandi wajib diisi.';        err.classList.add('show'); return; }
+    if (!role)  { et.textContent='Pilih role / peran Anda dahulu.';err.classList.add('show'); return; }
+
+    /* Loading state */
+    const btn=document.getElementById('btnLogin'), sp=document.getElementById('spinner'),
+          bi=document.getElementById('btnIcon'),   bt=document.getElementById('btnText');
+    btn.classList.add('loading'); sp.classList.add('show');
+    bi.style.display='none'; bt.textContent='Memverifikasi...';
+
+    /*
+    ┌──────────────────────────────────────────────────────────────┐
+    │  INTEGRASI FIREBASE AUTH (opsional, ganti setTimeout ini):   │
+    │                                                              │
+    │  firebase.auth()                                             │
+    │    .signInWithEmailAndPassword(nama, pass)                   │
+    │    .then(cred => {                                           │
+    │      AuthGuard.login(cred.user.displayName, role);           │
+    │      window.location.replace(AuthGuard.ROLES[role].defaultPage); │
+    │    })                                                        │
+    │    .catch(e => { et.textContent=e.message;                  │
+    │                  err.classList.add('show');                  │
+    │                  btn.classList.remove('loading'); ... });    │
+    └──────────────────────────────────────────────────────────────┘
+    */
+    setTimeout(() => {
+      /* Simpan session via AuthGuard */
+      AuthGuard.login(nama, role);
+      /* Redirect ke default page sesuai role */
+      window.location.replace(AuthGuard.ROLES[role].defaultPage);
+    }, 1000);
+  }
+
+  document.addEventListener('keydown', e => { if(e.key==='Enter') handleLogin(); });
+
+  /* Auto-redirect jika sudah login */
+  (function() {
+    const user = AuthGuard.getUser();
+    if (user && user.role && AuthGuard.ROLES[user.role]) {
+      window.location.replace(AuthGuard.ROLES[user.role].defaultPage);
+    }
+  })();
+</script>
+</body>
+</html>

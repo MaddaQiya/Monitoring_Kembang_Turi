@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Kembang Turi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g50:#f0fdf4;--g100:#dcfce7;--g200:#bbf7d0;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+      --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr300:#d1d5db;--gr400:#9ca3af;
+      --gr500:#6b7280;--gr600:#4b5563;--gr700:#374151;--gr800:#1f2937;--gr900:#111827;
+      --r50:#fef2f2;--r100:#fee2e2;--r500:#ef4444;--r600:#dc2626;
+      --y50:#fefce8;--y500:#eab308;--y600:#ca8a04;
+      --b50:#eff6ff;--b100:#dbeafe;--b500:#3b82f6;--b600:#2563eb;
+      --sidebar-w:240px;
+      --topbar-h:60px;
+      --nav-h:68px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--gr50);color:var(--gr900);}
+
+    /* ═══════════════════════════════════════
+       APP SHELL — The core responsive layout
+    ═══════════════════════════════════════ */
+    .app-shell{
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    /* On md+ → row layout with sidebar */
+    @media(min-width:768px){
+      .app-shell{flex-direction:row;}
+    }
+
+    /* ─── SIDEBAR (hidden on mobile, shown on md+) ─── */
+    .sidebar{
+      display:none; /* hidden mobile */
+      width:var(--sidebar-w);
+      background:#fff;
+      border-right:1px solid var(--gr200);
+      flex-direction:column;
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      flex-shrink:0;
+      z-index:200;
+    }
+    @media(min-width:768px){
+      .sidebar{display:flex;}
+    }
+
+    .sb-brand{
+      display:flex;align-items:center;gap:10px;
+      padding:20px 20px 16px;
+      border-bottom:1px solid var(--gr100);
+      text-decoration:none;
+    }
+    .sb-brand-icon{
+      width:36px;height:36px;background:var(--g100);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      color:var(--g700);font-size:17px;flex-shrink:0;
+    }
+    .sb-brand-name{font-size:15px;font-weight:800;color:var(--g700);}
+    .sb-brand-sub{font-size:10.5px;color:var(--gr400);font-weight:500;}
+
+    /* Role switcher */
+    .sb-role-section{padding:14px 16px;border-bottom:1px solid var(--gr100);}
+    .sb-role-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);margin-bottom:6px;}
+    .sb-role-select{
+      width:100%;padding:8px 10px;border:1.5px solid var(--gr200);border-radius:9px;
+      font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
+      color:var(--gr800);background:var(--gr50);outline:none;cursor:pointer;
+      transition:border-color .2s;
+    }
+    .sb-role-select:focus{border-color:var(--g500);}
+
+    /* Nav links */
+    .sb-nav{flex:1;padding:14px 12px;}
+    .sb-nav-group-label{
+      font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+      color:var(--gr400);padding:0 8px;margin-bottom:6px;margin-top:14px;
+    }
+    .sb-nav-group-label:first-child{margin-top:0;}
+
+    .sb-link{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 10px;border-radius:10px;
+      font-size:13.5px;font-weight:600;color:var(--gr600);
+      text-decoration:none;transition:background .15s,color .15s;
+      margin-bottom:2px;
+    }
+    .sb-link i{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+    .sb-link:hover{background:var(--gr100);color:var(--gr900);}
+    .sb-link.active{background:var(--g50);color:var(--g700);font-weight:700;}
+    .sb-link.active i{color:var(--g600);}
+
+    .sb-footer{
+      padding:16px;border-top:1px solid var(--gr100);
+    }
+    .sb-logout{
+      display:flex;align-items:center;gap:9px;
+      padding:9px 10px;border-radius:10px;
+      font-size:13.5px;font-weight:600;color:var(--gr500);
+      text-decoration:none;cursor:pointer;transition:all .15s;
+      background:none;border:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;
+    }
+    .sb-logout:hover{background:var(--r50);color:var(--r600);}
+    .sb-logout i{font-size:14px;}
+
+    /* ─── MAIN WRAP (fills remaining width) ─── */
+    .main-wrap{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      padding-bottom:var(--nav-h); /* space for bottom nav on mobile */
+    }
+    @media(min-width:768px){
+      .main-wrap{padding-bottom:0;} /* no bottom nav on desktop */
+    }
+
+    /* ─── TOP BAR ─── */
+    .topbar{
+      position:sticky;top:0;z-index:100;height:var(--topbar-h);
+      background:#fff;border-bottom:1px solid var(--gr200);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 16px;
+      box-shadow:0 1px 4px rgba(0,0,0,.06);
+      flex-shrink:0;
+    }
+
+    /* Mobile: show brand in topbar */
+    .topbar-brand{
+      display:flex;align-items:center;gap:9px;
+      font-weight:800;font-size:15px;color:var(--g700);text-decoration:none;
+    }
+    .topbar-brand i{font-size:18px;}
+    /* Hide topbar brand on desktop (sidebar has brand) */
+    @media(min-width:768px){.topbar-brand{display:none;}}
+
+    .topbar-page-title{
+      display:none;
+      font-size:18px;font-weight:800;color:var(--gr900);
+    }
+    @media(min-width:768px){.topbar-page-title{display:block;}}
+
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .notif-btn{
+      position:relative;width:38px;height:38px;background:var(--gr100);
+      border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;color:var(--gr700);font-size:16px;transition:background .2s;
+    }
+    .notif-btn:hover{background:var(--gr200);}
+    .notif-badge{
+      position:absolute;top:6px;right:6px;width:8px;height:8px;
+      background:var(--r500);border-radius:50%;border:1.5px solid #fff;
+    }
+    .profile-chip{
+      display:flex;align-items:center;gap:8px;
+      background:var(--gr100);border-radius:50px;padding:5px 12px 5px 5px;
+      cursor:pointer;transition:background .2s;
+    }
+    .profile-chip:hover{background:var(--gr200);}
+    .avatar{
+      width:30px;height:30px;background:var(--g600);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:800;font-size:13px;
+    }
+    .profile-info{display:none;}
+    @media(min-width:640px){
+      .profile-info{display:flex;flex-direction:column;line-height:1.2;}
+      .profile-info .pname{font-size:13px;font-weight:700;color:var(--gr900);}
+      .profile-info .prole{font-size:11px;color:var(--g600);font-weight:600;}
+    }
+
+    /* ─── PAGE CONTENT ─── */
+    .page-content{
+      padding:16px;
+      flex:1;
+    }
+    @media(min-width:768px){padding:24px;}
+    @media(min-width:1024px){
+      .page-content{padding:28px 32px;}
+    }
+
+    .page-title{font-size:14px;font-weight:600;color:var(--gr500);margin-bottom:2px;}
+    .page-greeting{font-size:20px;font-weight:800;color:var(--gr900);margin-bottom:18px;}
+    @media(min-width:768px){
+      .page-title{display:none;}
+      .page-greeting{font-size:22px;margin-bottom:22px;}
+    }
+
+    /* ─── SENSOR CARDS GRID ─── */
+    .sensor-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr; /* 2 cols on mobile */
+      gap:12px;
+      margin-bottom:14px;
+    }
+    @media(min-width:640px){
+      .sensor-grid{grid-template-columns:repeat(2,1fr);gap:14px;}
+    }
+    @media(min-width:1024px){
+      .sensor-grid{grid-template-columns:repeat(2,1fr);gap:18px;} /* Keep 2 cols, bigger cards */
+    }
+    @media(min-width:1280px){
+      .sensor-grid{grid-template-columns:repeat(4,1fr);} /* 4 cols on XL */
+    }
+
+    .sensor-card{
+      background:#fff;border-radius:16px;padding:16px 14px;
+      border:1.5px solid var(--gr200);
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+      transition:border-color .3s,box-shadow .3s,background .3s;
+      position:relative;overflow:hidden;
+    }
+    .sensor-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:var(--g500);border-radius:3px 3px 0 0;transition:background .3s;
+    }
+    .sensor-card.critical{background:var(--r50);border-color:var(--r500);}
+    .sensor-card.critical::before{background:var(--r500);}
+    .sensor-card.warning{background:var(--y50);border-color:var(--y500);}
+    .sensor-card.warning::before{background:var(--y500);}
+
+    @media(min-width:768px){
+      .sensor-card{padding:20px 18px;border-radius:18px;}
+    }
+
+    .card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+    .card-lbl{font-size:10px;font-weight:700;letter-spacing:.7px;color:var(--gr500);text-transform:uppercase;}
+    @media(min-width:768px){.card-lbl{font-size:11px;}}
+
+    .card-ico{
+      width:34px;height:34px;border-radius:9px;
+      display:flex;align-items:center;justify-content:center;font-size:15px;
+    }
+    @media(min-width:768px){.card-ico{width:38px;height:38px;font-size:17px;}}
+    .ico-green{background:var(--g100);color:var(--g600);}
+    .ico-blue{background:var(--b50);color:var(--b600);}
+    .ico-red{background:var(--r100);color:var(--r600);}
+
+    .sensor-val{
+      font-size:34px;font-weight:800;color:var(--gr900);
+      letter-spacing:-1.5px;line-height:1;margin-bottom:6px;
+      transition:color .3s;
+    }
+    @media(min-width:768px){.sensor-val{font-size:44px;}}
+    @media(min-width:1024px){.sensor-val{font-size:48px;}}
+    .sensor-val .unit{font-size:15px;font-weight:600;color:var(--gr400);letter-spacing:0;}
+
+    .sensor-status{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;}
+    @media(min-width:768px){.sensor-status{font-size:12.5px;}}
+    .st-ok{color:var(--g600);} .st-crit{color:var(--r600);} .st-warn{color:var(--y600);}
+
+    /* ─── LIVE ROW ─── */
+    .live-row{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:8px 12px;background:#fff;border-radius:10px;
+      border:1px solid var(--gr200);margin-bottom:14px;
+    }
+    @media(min-width:768px){padding:10px 16px;margin-bottom:18px;border-radius:12px;}
+    .live-ind{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gr500);font-weight:500;}
+    .live-dot{width:8px;height:8px;background:var(--g500);border-radius:50%;animation:blink 1.2s ease-in-out infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    .live-badge{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--g700);}
+
+    /* ─── CHART ─── */
+    .chart-card{
+      background:#fff;border-radius:16px;padding:18px 14px 14px;
+      border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    @media(min-width:768px){
+      .chart-card{border-radius:18px;padding:22px 20px 18px;}
+    }
+    .chart-title{font-size:14px;font-weight:700;color:var(--gr900);margin-bottom:3px;}
+    @media(min-width:768px){.chart-title{font-size:16px;}}
+    .chart-sub{font-size:11.5px;color:var(--gr400);margin-bottom:12px;}
+    .chart-legend{display:flex;gap:14px;margin-bottom:10px;}
+    .leg-item{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--gr500);}
+    .leg-dot{width:10px;height:10px;border-radius:3px;}
+    .chart-wrap{position:relative;height:190px;}
+    @media(min-width:640px){.chart-wrap{height:230px;}}
+    @media(min-width:1024px){.chart-wrap{height:260px;}}
+
+    /* ─── BOTTOM NAV (mobile only) ─── */
+    .bottom-nav{
+      position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+      background:#fff;border-top:1px solid var(--gr200);
+      display:flex;align-items:center;justify-content:space-around;
+      z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08);
+    }
+    /* Hide on desktop — sidebar takes over */
+    @media(min-width:768px){.bottom-nav{display:none;}}
+
+    .nav-item{
+      flex:1;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:4px;text-decoration:none;
+      color:var(--gr400);font-size:10px;font-weight:600;
+      padding:8px 0;transition:color .2s;position:relative;
+    }
+    .nav-item i{font-size:20px;transition:transform .2s;}
+    .nav-item.active{color:var(--g600);}
+    .nav-item.active i{transform:scale(1.1);}
+    .nav-item.active::before{
+      content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:32px;height:3px;background:var(--g600);border-radius:0 0 4px 4px;
+    }
+
+    /* ─── TOAST ─── */
+    .toast{
+      position:fixed;top:70px;left:50%;
+      transform:translateX(-50%) translateY(-20px);opacity:0;
+      padding:11px 20px;border-radius:50px;font-size:13px;font-weight:700;
+      display:flex;align-items:center;gap:8px;z-index:999;
+      transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;
+      white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2);
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.red{background:var(--r600);color:#fff;}
+    .toast.green{background:var(--g600);color:#fff;}
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR (desktop) ═══ -->
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sb-brand">
+      <div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div>
+      <div>
+        <div class="sb-brand-name">Kembang Turi</div>
+        <div class="sb-brand-sub">Monitoring Greenhouse</div>
+      </div>
+    </a>
+
+    <div class="sb-role-section">
+      <div class="sb-role-label">Ubah Role (Simulasi)</div>
+      <select class="sb-role-select" id="roleSelect" onchange="changeRole(this.value)">
+        <option value="manajer">Manajer</option>
+        <option value="asisten" selected>Asisten Kebun</option>
+        <option value="pekerja">Pekerja Lahan</option>
+        <option value="admin">Admin IT</option>
+      </select>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-nav-group-label">Menu Utama</div>
+      <a href="dashboard.html" class="sb-link active">
+        <i class="fa-solid fa-house"></i> Dashboard
+      </a>
+      <a href="laporan.html" class="sb-link">
+        <i class="fa-regular fa-file-lines"></i> Laporan Historis
+      </a>
+      <a href="parameter.html" class="sb-link">
+        <i class="fa-solid fa-sliders"></i> Ambang Batas
+      </a>
+      <div class="sb-nav-group-label">Sistem</div>
+      <a href="status.html" class="sb-link">
+        <i class="fa-solid fa-wave-square"></i> Status Sistem
+      </a>
+      <a href="akun.html" class="sb-link">
+        <i class="fa-solid fa-users"></i> Manajemen Akun
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <button class="sb-logout" onclick="window.location.href='index.html'">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN WRAP ═══ -->
+  <div class="main-wrap">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <a href="index.html" class="topbar-brand">
+        <i class="fa-solid fa-seedling"></i><span>Kembang Turi</span>
+      </a>
+      <span class="topbar-page-title">Dashboard</span>
+      <div class="topbar-right">
+        <button class="notif-btn" onclick="showToast('📋 Anda punya notifikasi baru','green')" title="Notifikasi">
+          <i class="fa-regular fa-bell"></i>
+          <span class="notif-badge" id="notifBadge"></span>
+        </button>
+        <div class="profile-chip">
+          <div class="avatar" id="avatarEl">A</div>
+          <div class="profile-info">
+            <span class="pname" id="profileName">Akun Asisten</span>
+            <span class="prole">● Online</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TOAST -->
+    <div class="toast" id="alertToast">
+      <i class="fa-solid fa-triangle-exclamation" id="toastIcon"></i>
+      <span id="toastMsg">Peringatan!</span>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+      <div class="page-title">Dashboard</div>
+      <div class="page-greeting">Halo, Asisten Kebun 👋</div>
+
+      <!-- SENSOR CARDS -->
+      <div class="sensor-grid">
+        <div class="sensor-card" id="suhuCard">
+          <div class="card-hdr">
+            <span class="card-lbl"><i class="fa-solid fa-temperature-half" style="margin-right:4px"></i>Suhu Udara</span>
+            <div class="card-ico ico-green" id="suhuIcoWrap"><i class="fa-solid fa-temperature-half"></i></div>
+          </div>
+          <div class="sensor-val" id="suhuVal">28.5<span class="unit">°C</span></div>
+          <div class="sensor-status st-ok" id="suhuSt">
+            <i class="fa-solid fa-circle-check"></i><span>Optimal</span>
+          </div>
+        </div>
+
+        <div class="sensor-card" id="phCard">
+          <div class="card-hdr">
+            <span class="card-lbl"><i class="fa-solid fa-droplet" style="margin-right:4px"></i>Nutrisi (pH)</span>
+            <div class="card-ico ico-blue" id="phIcoWrap"><i class="fa-solid fa-droplet"></i></div>
+          </div>
+          <div class="sensor-val" id="phVal">6.0<span class="unit"> pH</span></div>
+          <div class="sensor-status st-ok" id="phSt">
+            <i class="fa-solid fa-circle-check"></i><span>Stabil</span>
+          </div>
+        </div>
+
+        <!-- Extra stat cards (shown on XL as grid of 4) -->
+        <div class="sensor-card" id="humCard">
+          <div class="card-hdr">
+            <span class="card-lbl"><i class="fa-solid fa-wind" style="margin-right:4px"></i>Kelembaban</span>
+            <div class="card-ico ico-blue"><i class="fa-solid fa-droplet-percent"></i></div>
+          </div>
+          <div class="sensor-val" id="humVal">72<span class="unit">%</span></div>
+          <div class="sensor-status st-ok" id="humSt">
+            <i class="fa-solid fa-circle-check"></i><span>Normal</span>
+          </div>
+        </div>
+
+        <div class="sensor-card" id="lightCard">
+          <div class="card-hdr">
+            <span class="card-lbl"><i class="fa-solid fa-sun" style="margin-right:4px"></i>Intensitas Cahaya</span>
+            <div class="card-ico ico-green"><i class="fa-solid fa-sun"></i></div>
+          </div>
+          <div class="sensor-val" id="lightVal">18.4<span class="unit"> klx</span></div>
+          <div class="sensor-status st-ok">
+            <i class="fa-solid fa-circle-check"></i><span>Ideal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE ROW -->
+      <div class="live-row">
+        <div class="live-ind">
+          <div class="live-dot"></div>
+          <span>Update terakhir: <strong id="lastUpdate">--:--:--</strong></span>
+        </div>
+        <div class="live-badge">
+          <i class="fa-solid fa-wave-square" style="color:var(--g500)"></i> Sistem Live
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-card">
+        <div class="chart-title">Grafik Monitoring 2 Jam Terakhir</div>
+        <div class="chart-sub">Tren suhu &amp; pH secara real-time</div>
+        <div class="chart-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Suhu (°C)</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>pH Nutrisi</div>
+        </div>
+        <div class="chart-wrap"><canvas id="monitorChart"></canvas></div>
+      </div>
+    </main>
+  </div><!-- /.main-wrap -->
+</div><!-- /.app-shell -->
+
+<!-- BOTTOM NAV (mobile only) -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item active"><i class="fa-solid fa-house"></i>Beranda</a>
+  <a href="laporan.html" class="nav-item"><i class="fa-regular fa-file-lines"></i>Laporan</a>
+  <a href="parameter.html" class="nav-item"><i class="fa-solid fa-sliders"></i>Parameter</a>
+  <a href="status.html" class="nav-item"><i class="fa-solid fa-wave-square"></i>Status</a>
+  <a href="akun.html" class="nav-item"><i class="fa-regular fa-circle-user"></i>Akun</a>
+</nav>
+
+<script>
+  /* ── Chart init ── */
+  const POINTS = 24;
+  let suhuData=[], phData=[], timeLabels=[];
+  const now0 = new Date();
+  for(let i=POINTS;i>=0;i--){
+    const t=new Date(now0.getTime()-i*5*60*1000);
+    timeLabels.push(`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`);
+    suhuData.push(+(26.5+Math.random()*3).toFixed(1));
+    phData.push(+(5.7+Math.random()*0.7).toFixed(2));
+  }
+
+  const threshPlugin={
+    id:'thr',afterDraw(c){
+      const{ctx:x,chartArea:a,scales:s}=c;if(!a)return;
+      x.save();x.setLineDash([6,4]);
+      const y30=s.y.getPixelForValue(30);
+      x.strokeStyle='rgba(239,68,68,.5)';x.lineWidth=1.5;
+      x.beginPath();x.moveTo(a.left,y30);x.lineTo(a.right,y30);x.stroke();
+      const y65=s.y2.getPixelForValue(6.5);
+      x.strokeStyle='rgba(59,130,246,.4)';
+      x.beginPath();x.moveTo(a.left,y65);x.lineTo(a.right,y65);x.stroke();
+      const y55=s.y2.getPixelForValue(5.5);
+      x.strokeStyle='rgba(59,130,246,.3)';
+      x.beginPath();x.moveTo(a.left,y55);x.lineTo(a.right,y55);x.stroke();
+      x.restore();
+    }
+  };
+
+  const chart=new Chart(document.getElementById('monitorChart').getContext('2d'),{
+    type:'line',
+    data:{
+      labels:timeLabels,
+      datasets:[
+        {label:'Suhu (°C)',data:suhuData,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.08)',
+         borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.4,fill:true,yAxisID:'y'},
+        {label:'pH',data:phData,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.06)',
+         borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.4,yAxisID:'y2'}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(17,24,39,.9)',titleFont:{size:11},bodyFont:{size:12,weight:'bold'},padding:10,cornerRadius:8}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9ca3af',font:{size:10},maxTicksLimit:7,maxRotation:0}},
+        y:{position:'left',min:20,max:35,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#9ca3af',font:{size:10}}},
+        y2:{position:'right',min:4,max:8,grid:{display:false},ticks:{color:'#9ca3af',font:{size:10}}}
+      }
+    },
+    plugins:[threshPlugin]
+  });
+
+  /* ── Live sensor simulation ── */
+  let pS=28.5,pP=6.0,critShown=false;
+  function update(){
+    pS=Math.max(24,Math.min(33,+(pS+(Math.random()-.45)*.7).toFixed(1)));
+    pP=Math.max(4.8,Math.min(7.5,+(pP+(Math.random()-.5)*.09).toFixed(2)));
+
+    document.getElementById('suhuVal').innerHTML=`${pS}<span class="unit">°C</span>`;
+    document.getElementById('phVal').innerHTML=`${pP}<span class="unit"> pH</span>`;
+    document.getElementById('humVal').innerHTML=`${Math.floor(68+Math.random()*10)}<span class="unit">%</span>`;
+
+    /* Suhu status */
+    const sc=document.getElementById('suhuCard'),sw=document.getElementById('suhuIcoWrap'),ss=document.getElementById('suhuSt');
+    if(pS>30){
+      sc.className='sensor-card critical'; sw.className='card-ico ico-red';
+      ss.className='sensor-status st-crit'; ss.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span>Kritis: Terlalu Panas!</span>';
+      if(!critShown){showToast('⚠️ Suhu melampaui 30°C!','red');document.getElementById('notifBadge').style.display='block';critShown=true;}
+    } else {
+      sc.className='sensor-card'; sw.className='card-ico ico-green';
+      ss.className='sensor-status st-ok'; ss.innerHTML='<i class="fa-solid fa-circle-check"></i><span>Optimal</span>';
+      critShown=false;
+    }
+
+    /* pH status */
+    const pc=document.getElementById('phCard'),pw=document.getElementById('phIcoWrap'),ps=document.getElementById('phSt');
+    if(pP<5.5||pP>6.5){
+      pc.className='sensor-card warning'; pw.className='card-ico ico-red';
+      ps.className='sensor-status st-warn'; ps.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span>Di Luar Batas!</span>';
+    } else {
+      pc.className='sensor-card'; pw.className='card-ico ico-blue';
+      ps.className='sensor-status st-ok'; ps.innerHTML='<i class="fa-solid fa-circle-check"></i><span>Stabil</span>';
+    }
+
+    const t=new Date();
+    document.getElementById('lastUpdate').textContent=t.toLocaleTimeString('id-ID');
+    const lbl=`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    chart.data.labels.push(lbl);
+    chart.data.datasets[0].data.push(pS);
+    chart.data.datasets[1].data.push(pP);
+    if(chart.data.labels.length>POINTS+1){chart.data.labels.shift();chart.data.datasets[0].data.shift();chart.data.datasets[1].data.shift();}
+    chart.update('none');
+  }
+  document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('id-ID');
+  setInterval(update,3000);
+
+  function showToast(msg,type){
+    const t=document.getElementById('alertToast');
+    document.getElementById('toastMsg').textContent=msg;
+    t.className=`toast ${type}`;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3500);
+  }
+
+  function changeRole(v){
+    const map={manajer:{n:'Akun Manajer',i:'M'},asisten:{n:'Akun Asisten',i:'A'},pekerja:{n:'Akun Pekerja',i:'P'},admin:{n:'Akun Admin',i:'A'}};
+    const r=map[v]||map.asisten;
+    document.getElementById('profileName').textContent=r.n;
+    document.getElementById('avatarEl').textContent=r.i;
+  }
+</script>
+</body>
+</html>

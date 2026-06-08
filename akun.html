@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manajemen Akun — Kembang Turi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* ── Reset + Design Tokens ── */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --font:'Plus Jakarta Sans',sans-serif;
+      --g50:#f0fdf4;--g100:#dcfce7;--g200:#bbf7d0;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+      --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr300:#d1d5db;--gr400:#9ca3af;
+      --gr500:#6b7280;--gr600:#4b5563;--gr700:#374151;--gr800:#1f2937;--gr900:#111827;
+      --r50:#fef2f2;--r100:#fee2e2;--r200:#fecaca;--r500:#ef4444;--r600:#dc2626;
+      --y50:#fefce8;--y400:#facc15;--y600:#ca8a04;
+      --b50:#eff6ff;--b100:#dbeafe;--b600:#2563eb;
+      --p50:#faf5ff;--p100:#f3e8ff;--p600:#9333ea;
+      --o50:#fff7ed;--o100:#ffedd5;--o600:#ea580c;
+      --ind600:#4f46e5;--ind700:#4338ca;
+      --sidebar-w:240px;--topbar-h:60px;--nav-h:68px;
+    }
+    html,body{height:100%;font-family:var(--font);background:var(--gr50);color:var(--gr900);-webkit-font-smoothing:antialiased;}
+
+    /* ── App Shell (Mobile column → Desktop row) ── */
+    .app-shell{display:flex;flex-direction:column;min-height:100vh;}
+    @media(min-width:768px){.app-shell{flex-direction:row;}}
+
+    /* ── Sidebar ── */
+    .sidebar{display:none;width:var(--sidebar-w);background:#fff;border-right:1px solid var(--gr200);flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;z-index:200;}
+    @media(min-width:768px){.sidebar{display:flex;}}
+    .sb-brand{display:flex;align-items:center;gap:10px;padding:20px 20px 16px;border-bottom:1px solid var(--gr100);text-decoration:none;}
+    .sb-brand-icon{width:36px;height:36px;background:var(--g100);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--g700);font-size:17px;flex-shrink:0;}
+    .sb-brand-name{font-size:15px;font-weight:800;color:var(--g700);}
+    .sb-brand-sub{font-size:10.5px;color:var(--gr400);font-weight:500;}
+    .sb-role-section{padding:14px 16px;border-bottom:1px solid var(--gr100);}
+    .sb-role-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);margin-bottom:6px;}
+    .sb-role-select{width:100%;padding:8px 10px;border:1.5px solid var(--gr200);border-radius:9px;font-size:13px;font-family:var(--font);font-weight:600;color:var(--gr800);background:var(--gr50);outline:none;cursor:pointer;}
+    .sb-nav{flex:1;padding:14px 12px;}
+    .sb-nav-group-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);padding:0 8px;margin-bottom:6px;margin-top:14px;}
+    .sb-nav-group-label:first-child{margin-top:0;}
+    .sb-link{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr600);text-decoration:none;transition:background .15s,color .15s;margin-bottom:2px;}
+    .sb-link i{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+    .sb-link:hover{background:var(--gr100);color:var(--gr900);}
+    .sb-link.active{background:var(--g50);color:var(--g700);font-weight:700;}
+    .sb-link.active i{color:var(--g600);}
+    .sb-fb-status{display:flex;align-items:center;gap:8px;padding:10px 16px 14px;font-size:11.5px;color:var(--gr400);font-weight:500;}
+    .fb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--gr300);}
+    .fb-dot.online{background:var(--g500);animation:blink 2s ease-in-out infinite;}
+    .fb-dot.offline{background:var(--r500);}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .sb-footer{padding:16px;border-top:1px solid var(--gr100);}
+    .sb-logout{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--gr500);cursor:pointer;transition:all .15s;background:none;border:none;width:100%;font-family:var(--font);}
+    .sb-logout:hover{background:var(--r50);color:var(--r600);}
+
+    /* ── Main Wrap ── */
+    .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;padding-bottom:var(--nav-h);}
+    @media(min-width:768px){.main-wrap{padding-bottom:0;}}
+
+    /* ── Topbar ── */
+    .topbar{position:sticky;top:0;z-index:100;height:var(--topbar-h);background:#fff;border-bottom:1px solid var(--gr200);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0;}
+    .back-btn{width:36px;height:36px;background:var(--gr100);border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--gr700);cursor:pointer;text-decoration:none;transition:background .2s;flex-shrink:0;}
+    .back-btn:hover{background:var(--gr200);}
+    @media(min-width:768px){.back-btn{display:none;}}
+    .topbar-title{font-size:16px;font-weight:800;color:var(--gr900);flex:1;}
+    @media(min-width:768px){.topbar-title{font-size:18px;}}
+    .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .notif-btn{width:38px;height:38px;background:var(--gr100);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gr700);font-size:16px;transition:background .2s;}
+    .notif-btn:hover{background:var(--gr200);}
+    .profile-chip{display:flex;align-items:center;gap:8px;background:var(--gr100);border-radius:50px;padding:5px 12px 5px 5px;cursor:pointer;transition:background .2s;}
+    .profile-chip:hover{background:var(--gr200);}
+    .avatar-chip{width:30px;height:30px;background:var(--g600);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;}
+    .profile-name{display:none;}
+    @media(min-width:640px){.profile-name{display:flex;flex-direction:column;line-height:1.2;}.profile-name .pn{font-size:13px;font-weight:700;color:var(--gr900);}.profile-name .pr{font-size:11px;color:var(--g600);font-weight:600;}}
+
+    /* ── Page Content ── */
+    .page-content{padding:16px;flex:1;}
+    @media(min-width:768px){.page-content{padding:24px 28px;}}
+    @media(min-width:1024px){.page-content{padding:28px 32px;}}
+
+    /* Loading state */
+    .loading-overlay{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--gr400);font-size:14px;font-weight:600;background:#fff;border-radius:16px;border:1.5px solid var(--gr200);}
+    .loading-overlay i{font-size:22px;color:var(--g500);}
+
+    /* ── Page Header ── */
+    .page-header{background:#fff;border-radius:18px;padding:16px;border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    @media(min-width:768px){.page-header{padding:18px 20px;}}
+    .page-header-left{display:flex;align-items:center;gap:12px;}
+    .ph-icon{width:44px;height:44px;background:var(--b50);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--b600);font-size:20px;flex-shrink:0;}
+    .ph-title{font-size:15px;font-weight:800;color:var(--gr900);}
+    @media(min-width:768px){.ph-title{font-size:16px;}}
+    .ph-sub{font-size:12px;color:var(--gr500);margin-top:2px;}
+    .btn-add{display:flex;align-items:center;gap:8px;background:var(--ind600);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .2s,transform .15s;box-shadow:0 4px 12px rgba(79,70,229,.3);white-space:nowrap;flex-shrink:0;}
+    .btn-add:hover{background:var(--ind700);transform:translateY(-1px);}
+
+    /* ── Search ── */
+    .search-wrap{position:relative;margin-bottom:14px;}
+    .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gr400);font-size:15px;pointer-events:none;}
+    .search-input{width:100%;padding:13px 40px 13px 42px;border:1.5px solid var(--gr200);border-radius:12px;font-size:14px;font-family:var(--font);color:var(--gr900);background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+    .search-input:focus{border-color:var(--g500);box-shadow:0 0 0 3px rgba(34,197,94,.12);}
+    .search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--gr200);border:none;border-radius:50%;width:22px;height:22px;font-size:11px;color:var(--gr500);cursor:pointer;display:none;align-items:center;justify-content:center;transition:background .2s;}
+    .search-clear.show{display:flex;}
+
+    /* ── User Cards ── */
+    .user-list{display:flex;flex-direction:column;gap:10px;}
+    @media(min-width:1024px){.user-list{display:grid;grid-template-columns:1fr 1fr;gap:14px;}}
+    @media(min-width:1280px){.user-list{grid-template-columns:repeat(3,1fr);}}
+    .user-card{background:#fff;border-radius:16px;border:1.5px solid var(--gr200);box-shadow:0 2px 6px rgba(0,0,0,.04);padding:14px;display:flex;align-items:center;gap:12px;transition:box-shadow .2s,border-color .2s;animation:fadeIn .3s ease both;}
+    .user-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.09);border-color:var(--gr300);}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .user-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0;}
+    .av-indigo{background:var(--ind600);}.av-green{background:var(--g600);}.av-orange{background:var(--o600);}
+    .av-purple{background:var(--p600);}.av-teal{background:#0d9488;}.av-rose{background:#e11d48;}.av-sky{background:#0284c7;}
+    .user-info{flex:1;min-width:0;}
+    .user-name{font-size:14px;font-weight:700;color:var(--gr900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    @media(min-width:768px){.user-name{font-size:15px;}}
+    .user-uname{font-size:12px;color:var(--gr400);font-weight:500;margin-top:1px;}
+    .user-badges{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;}
+    .role-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:50px;}
+    .role-manajer{background:var(--b50);color:var(--b600);border:1px solid var(--b100);}
+    .role-asisten{background:var(--p50);color:var(--p600);border:1px solid var(--p100);}
+    .role-pekerja{background:var(--gr100);color:var(--gr600);border:1px solid var(--gr200);}
+    .role-admin{background:var(--o50);color:var(--o600);border:1px solid var(--o100);}
+    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .dot-on{background:var(--g500);box-shadow:0 0 0 2px rgba(34,197,94,.2);}
+    .dot-off{background:var(--gr300);}
+    .status-txt{font-size:11px;font-weight:600;}
+    .status-txt.active{color:var(--g600);}.status-txt.off{color:var(--gr400);}
+    .user-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+    .action-btn{width:34px;height:34px;border:1.5px solid var(--gr200);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13.5px;color:var(--gr500);cursor:pointer;transition:all .18s;}
+    .action-btn.edit:hover{background:var(--b50);border-color:var(--b100);color:var(--b600);}
+    .action-btn.del:hover{background:var(--r50);border-color:var(--r200);color:var(--r600);}
+    .empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;padding:52px 24px;text-align:center;background:#fff;border-radius:18px;border:1.5px solid var(--gr200);}
+    .empty-state.show{display:flex;}
+    .empty-icon{font-size:42px;color:var(--gr300);margin-bottom:12px;}
+    .empty-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+    .empty-sub{font-size:13px;color:var(--gr400);}
+
+    /* ── Modal ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);}
+    .modal-overlay.show{opacity:1;pointer-events:all;}
+    @media(min-width:768px){.modal-overlay{align-items:center;}}
+    .modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:8px 20px 32px;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.2,.64,1);max-height:90vh;overflow-y:auto;}
+    @media(min-width:768px){.modal-sheet{border-radius:20px;padding:28px;transform:translateY(0) scale(.95);opacity:0;transition:transform .3s ease,opacity .25s ease;}.modal-overlay.show .modal-sheet{transform:scale(1);opacity:1;}}
+    .modal-overlay.show .modal-sheet{transform:translateY(0);opacity:1;}
+    .modal-handle{width:36px;height:4px;background:var(--gr300);border-radius:2px;margin:10px auto 20px;cursor:pointer;}
+    @media(min-width:768px){.modal-handle{display:none;}}
+    .modal-title{font-size:18px;font-weight:800;color:var(--gr900);margin-bottom:4px;}
+    .modal-sub{font-size:13px;color:var(--gr500);margin-bottom:20px;}
+    .modal-field{margin-bottom:14px;}
+    .modal-field label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gr500);margin-bottom:6px;}
+    .modal-field input,.modal-field select{width:100%;padding:13px 14px;border:1.5px solid var(--gr200);border-radius:12px;font-size:14.5px;font-family:var(--font);color:var(--gr900);background:var(--gr50);outline:none;transition:border-color .2s;}
+    .modal-field input:focus,.modal-field select:focus{border-color:var(--g500);background:#fff;}
+    .modal-actions{display:flex;gap:10px;margin-top:18px;}
+    .btn-cancel{flex:1;padding:14px;background:var(--gr100);border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .2s;color:var(--gr700);}
+    .btn-cancel:hover{background:var(--gr200);}
+    .btn-confirm{flex:2;padding:14px;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .2s;}
+    .btn-confirm:disabled{opacity:.6;pointer-events:none;}
+    .btn-confirm.green{background:var(--g600);box-shadow:0 4px 12px rgba(22,163,74,.3);}
+    .btn-confirm.green:hover{background:var(--g700);}
+    .btn-confirm.red{background:var(--r600);}
+    .btn-confirm.red:hover{background:#b91c1c;}
+    .del-icon-wrap{width:60px;height:60px;background:var(--r50);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--r500);font-size:26px;margin:0 auto 14px;}
+    .del-modal .modal-title{text-align:center;color:var(--r600);}
+    .del-modal .modal-sub{text-align:center;}
+
+    /* ── Toast ── */
+    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;padding:11px 22px;border-radius:50px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;z-index:999;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.ok{background:var(--g600);color:#fff;box-shadow:0 4px 20px rgba(22,163,74,.3);}
+    .toast.error{background:var(--r600);color:#fff;box-shadow:0 4px 20px rgba(220,38,38,.3);}
+    .toast.info{background:var(--gr800);color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+
+    /* ── Bottom Nav (mobile only) ── */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:#fff;border-top:1px solid var(--gr200);display:flex;align-items:center;justify-content:space-around;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08);}
+    @media(min-width:768px){.bottom-nav{display:none;}}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--gr400);font-size:10px;font-weight:600;padding:8px 0;transition:color .2s;position:relative;}
+    .nav-item i{font-size:20px;transition:transform .2s;}
+    .nav-item.active{color:var(--g600);}
+    .nav-item.active i{transform:scale(1.1);}
+    .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--g600);border-radius:0 0 4px 4px;}
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sb-brand">
+      <div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div>
+      <div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div>
+    </a>
+    <div class="sb-role-section">
+      <div class="sb-role-label">Ubah Role (Simulasi)</div>
+      <select class="sb-role-select"><option>Manajer</option><option>Asisten Kebun</option><option>Pekerja Lahan</option><option selected>Admin IT</option></select>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-nav-group-label">Menu Utama</div>
+      <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="laporan.html"   class="sb-link"><i class="fa-regular fa-file-lines"></i> Laporan Historis</a>
+      <a href="parameter.html" class="sb-link"><i class="fa-solid fa-sliders"></i> Ambang Batas</a>
+      <div class="sb-nav-group-label">Sistem</div>
+      <a href="status.html"    class="sb-link"><i class="fa-solid fa-wave-square"></i> Status Sistem</a>
+      <a href="akun.html"      class="sb-link active"><i class="fa-solid fa-users"></i> Manajemen Akun</a>
+    </nav>
+    <div class="sb-fb-status"><div class="fb-dot" id="fbDot"></div><span id="fbTxt">Menghubungkan...</span></div>
+    <div class="sb-footer"><button class="sb-logout" onclick="location.href='index.html'"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button></div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main-wrap">
+    <header class="topbar">
+      <a href="dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+      <span class="topbar-title">Kelola Pengguna</span>
+      <div class="topbar-right">
+        <button class="notif-btn"><i class="fa-regular fa-bell"></i></button>
+        <div class="profile-chip">
+          <div class="avatar-chip">A</div>
+          <div class="profile-name"><span class="pn">Akun Admin</span><span class="pr">● Online</span></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="toast" id="toast"><i id="toastIcon" class="fa-solid fa-check"></i><span id="toastMsg"></span></div>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="ph-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <div class="ph-title">Manajemen Akun Pengguna</div>
+            <div class="ph-sub">Data tersimpan & sinkron ke Firebase Realtime Database</div>
+          </div>
+        </div>
+        <button class="btn-add" onclick="openAddModal()"><i class="fa-solid fa-user-plus"></i> Tambah Pengguna</button>
+      </div>
+
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="search" class="search-input" id="searchInput" placeholder="Cari nama, username, atau peran..." oninput="filterUsers()"/>
+        <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Loading state shown until Firebase responds -->
+      <div class="loading-overlay" id="loadingOverlay">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> Memuat data dari Firebase...
+      </div>
+
+      <div class="user-list" id="userList" style="display:none"></div>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon"><i class="fa-solid fa-users-slash"></i></div>
+        <div class="empty-title">Pengguna tidak ditemukan</div>
+        <div class="empty-sub">Coba kata kunci lain atau tambah pengguna baru</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editOverlay" onclick="handleOverlayClick(event,'editOverlay')">
+  <div class="modal-sheet">
+    <div class="modal-handle" onclick="closeModal('editOverlay')"></div>
+    <div class="modal-title">Edit Pengguna</div>
+    <div class="modal-sub">Perubahan langsung tersimpan ke Firebase</div>
+    <div class="modal-field"><label>Nama Lengkap</label><input type="text" id="editName"/></div>
+    <div class="modal-field"><label>Username</label><input type="text" id="editUsername" placeholder="tanpa @"/></div>
+    <div class="modal-field"><label>Role / Peran</label>
+      <select id="editRole">
+        <option value="Manajer">Manajer</option>
+        <option value="Asisten">Asisten Kebun</option>
+        <option value="Pekerja">Pekerja Lahan</option>
+        <option value="Admin">Admin IT</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Status Akun</label>
+      <select id="editStatus"><option value="active">Aktif</option><option value="inactive">Nonaktif</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('editOverlay')">Batal</button>
+      <button class="btn-confirm green" id="editSaveBtn" onclick="saveEdit()">
+        <i class="fa-solid fa-floppy-disk" style="margin-right:7px"></i>Simpan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="delOverlay" onclick="handleOverlayClick(event,'delOverlay')">
+  <div class="modal-sheet del-modal">
+    <div class="modal-handle" onclick="closeModal('delOverlay')"></div>
+    <div class="del-icon-wrap"><i class="fa-solid fa-trash"></i></div>
+    <div class="modal-title">Hapus Pengguna?</div>
+    <div class="modal-sub">Akun <strong id="delTargetName"></strong> akan dihapus permanen dari Firebase. Tindakan ini tidak dapat dibatalkan.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('delOverlay')">Batal</button>
+      <button class="btn-confirm red" id="delConfirmBtn" onclick="confirmDelete()">
+        <i class="fa-solid fa-trash" style="margin-right:7px"></i>Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addOverlay" onclick="handleOverlayClick(event,'addOverlay')">
+  <div class="modal-sheet">
+    <div class="modal-handle" onclick="closeModal('addOverlay')"></div>
+    <div class="modal-title">Tambah Pengguna Baru</div>
+    <div class="modal-sub">Data otomatis tersimpan ke Firebase Realtime DB</div>
+    <div class="modal-field"><label>Nama Lengkap</label><input type="text" id="addName" placeholder="Contoh: Andi Pratama"/></div>
+    <div class="modal-field"><label>Username</label><input type="text" id="addUsername" placeholder="andipratama (tanpa @)"/></div>
+    <div class="modal-field"><label>Role / Peran</label>
+      <select id="addRole">
+        <option value="Pekerja">Pekerja Lahan</option>
+        <option value="Asisten">Asisten Kebun</option>
+        <option value="Manajer">Manajer</option>
+        <option value="Admin">Admin IT</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addOverlay')">Batal</button>
+      <button class="btn-confirm green" id="addSaveBtn" onclick="addUser()">
+        <i class="fa-solid fa-user-plus" style="margin-right:7px"></i>Tambahkan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav (mobile) -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i>Beranda</a>
+  <a href="laporan.html"   class="nav-item"><i class="fa-regular fa-file-lines"></i>Laporan</a>
+  <a href="parameter.html" class="nav-item"><i class="fa-solid fa-sliders"></i>Parameter</a>
+  <a href="status.html"    class="nav-item"><i class="fa-solid fa-wave-square"></i>Status</a>
+  <a href="akun.html"      class="nav-item active"><i class="fa-regular fa-circle-user"></i>Akun</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     FIREBASE MODULAR SDK v12
+     NOTE: type="module" is required for ES imports
+══════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }           from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getDatabase, ref, push,
+         update, remove, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+/* ── Firebase Config (your real credentials) ── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyDH6oCPlkJfENGu468i-pNncpsGAGOa_UQ",
+  authDomain:        "monitoringgreenhouse-c85cd.firebaseapp.com",
+  databaseURL:       "https://monitoringgreenhouse-c85cd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "monitoringgreenhouse-c85cd",
+  storageBucket:     "monitoringgreenhouse-c85cd.firebasestorage.app",
+  messagingSenderId: "910282906314",
+  appId:             "1:910282906314:web:3daefde044c971e35e3233"
+};
+
+const app      = initializeApp(firebaseConfig);
+const db       = getDatabase(app);
+const usersRef = ref(db, 'users');
+
+/* ── Avatar colors & role CSS map ── */
+const AV = ['av-indigo','av-green','av-orange','av-purple','av-teal','av-rose','av-sky'];
+const ROLE_CLS = {
+  Manajer:'role-manajer', Asisten:'role-asisten',
+  Pekerja:'role-pekerja', Admin:'role-admin'
+};
+
+/* ── Local state ── */
+let allUsers   = [];
+let editingKey = null;
+let deletingKey= null;
+
+/* ────────────────────────────────────────────
+   1. FIREBASE CONNECTION INDICATOR
+──────────────────────────────────────────── */
+const connRef = ref(db, '.info/connected');
+onValue(connRef, snap => {
+  const online = snap.val();
+  const dot = document.getElementById('fbDot');
+  const txt = document.getElementById('fbTxt');
+  dot.className = 'fb-dot ' + (online ? 'online' : 'offline');
+  txt.textContent = online ? 'Firebase Terhubung ✓' : 'Firebase Terputus';
+});
+
+/* ────────────────────────────────────────────
+   2. REAL-TIME LISTENER
+   onValue fires immediately with current data,
+   then again whenever any child changes.
+   This replaces hardcoded array entirely.
+──────────────────────────────────────────── */
+onValue(usersRef, snap => {
+  allUsers = [];
+  if (snap.exists()) {
+    snap.forEach(child => {
+      allUsers.push({ key: child.key, ...child.val() });
+    });
+  }
+  // Hide loader, show list
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('userList').style.display = '';
+  renderUsers(allUsers);
+}, err => {
+  document.getElementById('loadingOverlay').innerHTML =
+    `<i class="fa-solid fa-triangle-exclamation" style="color:var(--r500)"></i>
+     Gagal memuat: ${err.message}`;
+});
+
+/* ────────────────────────────────────────────
+   3. RENDER
+──────────────────────────────────────────── */
+function renderUsers(list) {
+  const ul = document.getElementById('userList');
+  const es = document.getElementById('emptyState');
+  if (!list || list.length === 0) {
+    ul.innerHTML = '';
+    es.classList.add('show');
+    return;
+  }
+  es.classList.remove('show');
+  ul.innerHTML = list.map((u, i) => {
+    const nama   = u.nama || u.name || '?';
+    const uname  = u.username ? `@${u.username}` : '-';
+    const role   = u.role || 'Pekerja';
+    const active = u.active !== false;
+    return `
+      <div class="user-card">
+        <div class="user-avatar ${AV[i % AV.length]}">${nama.charAt(0).toUpperCase()}</div>
+        <div class="user-info">
+          <div class="user-name">${nama}</div>
+          <div class="user-uname">${uname}</div>
+          <div class="user-badges">
+            <span class="role-badge ${ROLE_CLS[role] || 'role-pekerja'}">${role}</span>
+            <span class="status-dot ${active ? 'dot-on' : 'dot-off'}"></span>
+            <span class="status-txt ${active ? 'active' : 'off'}">${active ? 'Aktif' : 'Nonaktif'}</span>
+          </div>
+        </div>
+        <div class="user-actions">
+          <button class="action-btn edit" data-key="${u.key}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button class="action-btn del"  data-key="${u.key}" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`;
+  }).join('');
+
+  /* Attach click handlers after render (avoids inline onclick issues with modules) */
+  ul.querySelectorAll('.action-btn.edit').forEach(btn =>
+    btn.addEventListener('click', () => openEditModal(btn.dataset.key))
+  );
+  ul.querySelectorAll('.action-btn.del').forEach(btn =>
+    btn.addEventListener('click', () => openDelModal(btn.dataset.key))
+  );
+}
+
+/* ────────────────────────────────────────────
+   4. SEARCH / FILTER
+──────────────────────────────────────────── */
+window.filterUsers = () => {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  document.getElementById('searchClear').classList.toggle('show', q.length > 0);
+  const filtered = allUsers.filter(u =>
+    (u.nama||u.name||'').toLowerCase().includes(q) ||
+    (u.role||'').toLowerCase().includes(q) ||
+    (u.username||'').toLowerCase().includes(q)
+  );
+  renderUsers(filtered);
+};
+window.clearSearch = () => {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.remove('show');
+  renderUsers(allUsers);
+};
+
+/* ────────────────────────────────────────────
+   5. MODAL HELPERS
+──────────────────────────────────────────── */
+window.openModal  = id => { document.getElementById(id).classList.add('show'); document.body.style.overflow='hidden'; };
+window.closeModal = id => { document.getElementById(id).classList.remove('show'); document.body.style.overflow=''; };
+window.handleOverlayClick = (e, id) => { if (e.target===document.getElementById(id)) window.closeModal(id); };
+
+function setBtn(id, disabled, html) {
+  const b = document.getElementById(id);
+  b.disabled = disabled;
+  if (html) b.innerHTML = html;
+}
+
+/* ────────────────────────────────────────────
+   6. TOAST
+──────────────────────────────────────────── */
+window.showToast = (msg, type='ok') => {
+  const t  = document.getElementById('toast');
+  const ic = document.getElementById('toastIcon');
+  document.getElementById('toastMsg').textContent = msg;
+  ic.className = {ok:'fa-solid fa-check', error:'fa-solid fa-xmark', info:'fa-solid fa-circle-info'}[type] || 'fa-solid fa-check';
+  t.className = `toast ${type}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+};
+
+/* ────────────────────────────────────────────
+   7. ADD USER  → Firebase push()
+──────────────────────────────────────────── */
+window.openAddModal = () => {
+  ['addName','addUsername'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('addRole').value = 'Pekerja';
+  window.openModal('addOverlay');
+};
+
+window.addUser = async () => {
+  const nama     = document.getElementById('addName').value.trim();
+  const username = document.getElementById('addUsername').value.trim().replace(/^@/,'');
+  const role     = document.getElementById('addRole').value;
+  if (!nama || !username) { window.showToast('Nama dan username wajib diisi!','error'); return; }
+
+  setBtn('addSaveBtn', true, '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:7px"></i>Menyimpan...');
+  try {
+    await push(usersRef, { nama, username, role, active: true, createdAt: Date.now() });
+    window.closeModal('addOverlay');
+    window.showToast('✅ Pengguna berhasil ditambahkan ke Firebase!','ok');
+    /* onValue listener will auto-refresh the list */
+  } catch(e) {
+    window.showToast('Gagal menyimpan: ' + e.message, 'error');
+  } finally {
+    setBtn('addSaveBtn', false, '<i class="fa-solid fa-user-plus" style="margin-right:7px"></i>Tambahkan');
+  }
+};
+
+/* ────────────────────────────────────────────
+   8. EDIT USER  → Firebase update()
+──────────────────────────────────────────── */
+function openEditModal(key) {
+  editingKey = key;
+  const u = allUsers.find(x => x.key === key);
+  if (!u) return;
+  document.getElementById('editName').value     = u.nama || u.name || '';
+  document.getElementById('editUsername').value = u.username || '';
+  document.getElementById('editRole').value     = u.role || 'Pekerja';
+  document.getElementById('editStatus').value   = u.active !== false ? 'active' : 'inactive';
+  window.openModal('editOverlay');
+}
+
+window.saveEdit = async () => {
+  const nama     = document.getElementById('editName').value.trim();
+  const username = document.getElementById('editUsername').value.trim().replace(/^@/,'');
+  const role     = document.getElementById('editRole').value;
+  const active   = document.getElementById('editStatus').value === 'active';
+  if (!nama) { window.showToast('Nama tidak boleh kosong!','error'); return; }
+
+  setBtn('editSaveBtn', true, '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:7px"></i>Menyimpan...');
+  try {
+    await update(ref(db, `users/${editingKey}`), { nama, username, role, active, updatedAt: Date.now() });
+    window.closeModal('editOverlay');
+    window.showToast('✅ Data pengguna berhasil diperbarui!','ok');
+  } catch(e) {
+    window.showToast('Gagal update: ' + e.message,'error');
+  } finally {
+    setBtn('editSaveBtn', false, '<i class="fa-solid fa-floppy-disk" style="margin-right:7px"></i>Simpan');
+  }
+};
+
+/* ────────────────────────────────────────────
+   9. DELETE USER  → Firebase remove()
+──────────────────────────────────────────── */
+function openDelModal(key) {
+  deletingKey = key;
+  const u = allUsers.find(x => x.key === key);
+  document.getElementById('delTargetName').textContent = u ? (u.nama || u.name || '-') : '-';
+  window.openModal('delOverlay');
+}
+
+window.confirmDelete = async () => {
+  setBtn('delConfirmBtn', true, '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:7px"></i>Menghapus...');
+  try {
+    await remove(ref(db, `users/${deletingKey}`));
+    window.closeModal('delOverlay');
+    window.showToast('🗑️ Pengguna berhasil dihapus dari Firebase','ok');
+  } catch(e) {
+    window.showToast('Gagal hapus: ' + e.message,'error');
+  } finally {
+    setBtn('delConfirmBtn', false, '<i class="fa-solid fa-trash" style="margin-right:7px"></i>Hapus');
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+/* ============================================================
+   TOKENS.CSS — Design System Variables
+   Kembang Turi Digital Greenhouse Monitoring System
+   Import this first in every page's <head> before other CSS.
+   ============================================================ */
+
+:root {
+  /* ── Font ── */
+  --font: 'Plus Jakarta Sans', sans-serif;
+
+  /* ── Green (Primary / Brand) ── */
+  --g50:  #f0fdf4;
+  --g100: #dcfce7;
+  --g200: #bbf7d0;
+  --g300: #86efac;
+  --g500: #22c55e;
+  --g600: #16a34a;
+  --g700: #15803d;
+  --g800: #166534;
+
+  /* ── Gray (Neutral) ── */
+  --gr50:  #f9fafb;
+  --gr100: #f3f4f6;
+  --gr200: #e5e7eb;
+  --gr300: #d1d5db;
+  --gr400: #9ca3af;
+  --gr500: #6b7280;
+  --gr600: #4b5563;
+  --gr700: #374151;
+  --gr800: #1f2937;
+  --gr900: #111827;
+
+  /* ── Red (Alert / Critical) ── */
+  --r50:  #fef2f2;
+  --r100: #fee2e2;
+  --r200: #fecaca;
+  --r500: #ef4444;
+  --r600: #dc2626;
+
+  /* ── Yellow (Warning) ── */
+  --y50:  #fefce8;
+  --y100: #fef9c3;
+  --y400: #facc15;
+  --y500: #eab308;
+  --y600: #ca8a04;
+
+  /* ── Blue (Info) ── */
+  --b50:  #eff6ff;
+  --b100: #dbeafe;
+  --b500: #3b82f6;
+  --b600: #2563eb;
+
+  /* ── Purple (Role: Asisten) ── */
+  --p50:  #faf5ff;
+  --p100: #f3e8ff;
+  --p600: #9333ea;
+
+  /* ── Orange (Role: Admin) ── */
+  --o50:  #fff7ed;
+  --o100: #ffedd5;
+  --o600: #ea580c;
+
+  /* ── Indigo (Action buttons) ── */
+  --ind500: #6366f1;
+  --ind600: #4f46e5;
+  --ind700: #4338ca;
+
+  /* ── Layout ── */
+  --sidebar-w: 240px;
+  --topbar-h:  60px;
+  --nav-h:     68px;
+
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 4px rgba(0,0,0,.06);
+  --shadow-md:  0 2px 8px rgba(0,0,0,.07);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,.10);
+  --shadow-grn: 0 4px 14px rgba(22,163,74,.35);
+  --shadow-ind: 0 4px 12px rgba(79,70,229,.30);
+
+  /* ── Border radius ── */
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  18px;
+  --radius-2xl: 24px;
+
+  /* ── Transitions ── */
+  --tx-fast: .15s ease;
+  --tx-base: .20s ease;
+  --tx-slow: .35s cubic-bezier(.34,1.56,.64,1);
+}
