@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Sensor Simulator — Greenhouse Melon</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:    #0d1117;
+      --bg-panel:   #161b22;
+      --bg-console: #0a0f14;
+      --border:     #30363d;
+      --green:      #39d353;
+      --green-dim:  #1a5c2a;
+      --green-glow: rgba(57, 211, 83, 0.15);
+      --red:        #f85149;
+      --red-dim:    #5c1a1a;
+      --amber:      #d29922;
+      --blue:       #58a6ff;
+      --text-pri:   #e6edf3;
+      --text-sec:   #8b949e;
+      --text-dim:   #484f58;
+      --font-mono:  'JetBrains Mono', 'Courier New', monospace;
+      --font-ui:    'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text-pri);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 24px;
+    }
+    .header-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--green);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-pri);
+      letter-spacing: -.02em;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-top: 4px;
+    }
+    .header-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin-top: 16px;
+    }
+
+    /* ── LAYOUT ── */
+    .layout {
+      width: 100%;
+      max-width: 860px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 16px;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .panel-header .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+    .panel-header .dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ── CONTROL PANEL ── */
+    .control-body { padding: 16px; }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .status-indicator {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: background .3s, box-shadow .3s;
+      flex-shrink: 0;
+    }
+    .status-indicator.running {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .status-indicator.stopped { background: var(--red); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+    .status-text {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-sec);
+    }
+    .status-text strong { color: var(--text-pri); }
+
+    /* sensor readings */
+    .readings { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .reading-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .reading-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 4px;
+    }
+    .reading-value {
+      font-size: 26px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--green);
+      line-height: 1;
+    }
+    .reading-value.idle { color: var(--text-dim); }
+    .reading-unit {
+      font-size: 12px;
+      color: var(--text-sec);
+      margin-left: 3px;
+    }
+    .reading-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .reading-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width .6s ease;
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    /* interval setting */
+    .setting-group { margin-bottom: 18px; }
+    .setting-label {
+      font-size: 11px;
+      color: var(--text-sec);
+      font-family: var(--font-mono);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .setting-row { display: flex; align-items: center; gap: 8px; }
+    input[type="number"] {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text-pri);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 6px 10px;
+      width: 70px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type="number"]:focus { border-color: var(--green); }
+    input[type="number"]:disabled { opacity: .4; cursor: not-allowed; }
+    .setting-unit { font-size: 12px; color: var(--text-sec); font-family: var(--font-mono); }
+
+    /* buttons */
+    .btn-group { display: flex; flex-direction: column; gap: 8px; }
+    .btn {
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s, box-shadow .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: .02em;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+    .btn-start {
+      background: var(--green);
+      color: #0d1117;
+      box-shadow: 0 0 0 transparent;
+    }
+    .btn-start:not(:disabled):hover {
+      opacity: .9;
+      box-shadow: 0 0 14px var(--green-glow);
+    }
+    .btn-stop {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
+    .btn-stop:not(:disabled):hover {
+      background: rgba(248,81,73,.08);
+      box-shadow: 0 0 10px rgba(248,81,73,.15);
+    }
+    .btn-clear {
+      background: transparent;
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      padding: 7px 14px;
+    }
+    .btn-clear:not(:disabled):hover { color: var(--text-pri); border-color: var(--text-sec); }
+
+    /* counter */
+    .counter-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .counter-item { text-align: center; }
+    .counter-val {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-pri);
+    }
+    .counter-lbl { font-size: 10px; color: var(--text-sec); font-family: var(--font-mono); }
+
+    /* ── CONSOLE ── */
+    .console-panel { display: flex; flex-direction: column; }
+    .console-body {
+      flex: 1;
+      background: var(--bg-console);
+      padding: 14px;
+      height: 440px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.65;
+      scroll-behavior: smooth;
+    }
+    .console-body::-webkit-scrollbar { width: 5px; }
+    .console-body::-webkit-scrollbar-track { background: transparent; }
+    .console-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .log-line { display: flex; gap: 10px; padding: 2px 0; }
+    .log-time { color: var(--text-dim); flex-shrink: 0; }
+    .log-tag {
+      flex-shrink: 0;
+      padding: 0 5px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+    .tag-ok  { background: var(--green-dim); color: var(--green); }
+    .tag-err { background: var(--red-dim); color: var(--red); }
+    .tag-inf { background: #1c2333; color: var(--blue); }
+    .tag-sys { background: #261c0e; color: var(--amber); }
+    .log-msg { color: var(--text-pri); word-break: break-all; }
+    .log-msg .val { color: var(--green); }
+
+    .console-empty {
+      color: var(--text-dim);
+      text-align: center;
+      padding-top: 60px;
+      font-size: 12px;
+    }
+    .console-empty pre { color: #2a3a2a; margin-bottom: 12px; font-size: 10px; line-height: 1.3; }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .layout { grid-template-columns: 1fr; }
+      .console-body { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-eyebrow">▶ PT Kembang Turi — Digital Greenhouse System</p>
+  <h1 class="header-title">IoT Sensor Simulator</h1>
+  <p class="header-sub">Mensimulasikan pengiriman data sensor ke Firebase Realtime Database — tanpa hardware fisik.</p>
+  <hr class="header-divider" />
+</header>
+
+<div class="layout">
+
+  <!-- ── CONTROL PANEL ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="dot" id="dotStatus"></span>
+      <span id="panelStatusText">Perangkat Siap</span>
+    </div>
+    <div class="control-body">
+
+      <div class="status-badge">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <div class="status-text">Status: <strong id="statusLabel">IDLE</strong></div>
+      </div>
+
+      <div class="readings">
+        <div class="reading-card">
+          <div class="reading-label">🌡 Suhu</div>
+          <div>
+            <span class="reading-value idle" id="valSuhu">--.-</span>
+            <span class="reading-unit">°C</span>
+          </div>
+          <div class="reading-bar"><div class="reading-bar-fill" id="barSuhu" style="width:0%"></div></div>
+        </div>
+        <div class="reading-card">
+          <div class="reading-label">⚗ pH</div>
+          <div>
+            <span class="reading-value idle" id="valPh">-.-</span>
+            <span class="reading-unit">pH</span>
+          </div>
+          <div class="reading-bar"><div class="reading-bar-fill" id="barPh" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">// interval pengiriman</label>
+        <div class="setting-row">
+          <input type="number" id="intervalInput" value="5" min="1" max="60" />
+          <span class="setting-unit">detik</span>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-start" id="btnStart">▶ Mulai Simulasi</button>
+        <button class="btn btn-stop" id="btnStop" disabled>■ Hentikan Simulasi</button>
+        <button class="btn btn-clear" id="btnClear">✕ Bersihkan Log</button>
+      </div>
+
+      <div class="counter-row">
+        <div class="counter-item">
+          <div class="counter-val" id="cntSent">0</div>
+          <div class="counter-lbl">Terkirim</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-val" id="cntErr">0</div>
+          <div class="counter-lbl">Gagal</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-val" id="cntNext">--</div>
+          <div class="counter-lbl">Next (s)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── CONSOLE ── -->
+  <div class="panel console-panel">
+    <div class="panel-header">
+      <span class="dot"></span>
+      <span>Serial Monitor — Firebase Log</span>
+    </div>
+    <div class="console-body" id="console">
+      <div class="console-empty">
+        <pre>
+  .  *   . .   .  .  .
+    .  *    . * .  *   .
+  .        .        .
+         [offline]
+        </pre>
+        Tekan <strong>Mulai Simulasi</strong> untuk memulai pengiriman data.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>simulator.html · Firebase SDK v12 · window.FB.writeSensorLog</footer>
+
+<!-- ═══════════════════════════════════════════════════════════
+  STEP 1: Load firebase-config.js sebagai module.
+  Ini mendaftarkan window.FB bridge secara otomatis.
+════════════════════════════════════════════════════════════ -->
+<script type="module" src="./firebase-config.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+  STEP 2: Script UI — pakai window.FB yang sudah siap.
+  Harus defer agar jalan SETELAH firebase-config.js selesai.
+════════════════════════════════════════════════════════════ -->
+<script defer>
+  // ════════════════════════════════════════════════════════════════════════════
+  // TUNGGU window.FB siap (firebase-config.js async karena module)
+  // ════════════════════════════════════════════════════════════════════════════
+  function waitForFB(cb) {
+    if (window.FB && window.FB.writeSensorLog) { cb(); return; }
+    setTimeout(() => waitForFB(cb), 50);
+  }
+
+  waitForFB(() => {
+    // ── KONSTANTA ──────────────────────────────────────────────────────────────
+    const SUHU_MIN = 25.0, SUHU_MAX = 32.0;
+    const PH_MIN   = 5.5,  PH_MAX   = 7.0;
+
+    // ── STATE ──────────────────────────────────────────────────────────────────
+    let intervalId  = null;
+    let countdownId = null;
+    let sentCount   = 0;
+    let errCount    = 0;
+    let nextTick    = 0;
+
+    // ── DOM REFS ───────────────────────────────────────────────────────────────
+    const consoleEl  = document.getElementById('console');
+    const btnStart   = document.getElementById('btnStart');
+    const btnStop    = document.getElementById('btnStop');
+    const btnClear   = document.getElementById('btnClear');
+    const intervalIn = document.getElementById('intervalInput');
+    const valSuhu    = document.getElementById('valSuhu');
+    const valPh      = document.getElementById('valPh');
+    const barSuhu    = document.getElementById('barSuhu');
+    const barPh      = document.getElementById('barPh');
+    const cntSent    = document.getElementById('cntSent');
+    const cntErr     = document.getElementById('cntErr');
+    const cntNext    = document.getElementById('cntNext');
+    const statusInd  = document.getElementById('statusIndicator');
+    const statusLbl  = document.getElementById('statusLabel');
+    const dotStatus  = document.getElementById('dotStatus');
+    const panelTxt   = document.getElementById('panelStatusText');
+
+    // ── UTILITAS ───────────────────────────────────────────────────────────────
+    function timeStr() {
+      return new Date().toLocaleTimeString('id-ID', { hour12: false });
+    }
+
+    function addLog(msg, type = 'inf') {
+      const wasEmpty = consoleEl.querySelector('.console-empty');
+      if (wasEmpty) consoleEl.innerHTML = '';
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `
+        <span class="log-time">${timeStr()}</span>
+        <span class="log-tag tag-${type}">${type.toUpperCase()}</span>
+        <span class="log-msg">${msg}</span>`;
+      consoleEl.appendChild(line);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function updateReadings(suhu, ph) {
+      valSuhu.textContent = suhu.toFixed(1);
+      valPh.textContent   = ph.toFixed(2);
+      valSuhu.classList.remove('idle');
+      valPh.classList.remove('idle');
+      barSuhu.style.width = ((suhu - SUHU_MIN) / (SUHU_MAX - SUHU_MIN) * 100) + '%';
+      barPh.style.width   = ((ph   - PH_MIN)   / (PH_MAX   - PH_MIN)   * 100) + '%';
+    }
+
+    function setRunning(running) {
+      if (running) {
+        statusInd.className   = 'status-indicator running';
+        statusLbl.textContent = 'RUNNING';
+        dotStatus.classList.add('active');
+        panelTxt.textContent  = 'Simulasi Berjalan';
+        btnStart.disabled     = true;
+        btnStop.disabled      = false;
+        intervalIn.disabled   = true;
+      } else {
+        statusInd.className   = 'status-indicator stopped';
+        statusLbl.textContent = 'STOPPED';
+        dotStatus.classList.remove('active');
+        panelTxt.textContent  = 'Simulasi Berhenti';
+        btnStart.disabled     = false;
+        btnStop.disabled      = true;
+        intervalIn.disabled   = false;
+        cntNext.textContent   = '--';
+      }
+    }
+
+    // ── KIRIM DATA via window.FB ───────────────────────────────────────────────
+    // firebase-config.js sudah punya logika drift & writeSensorLog sendiri,
+    // tapi kita pakai versi kita agar UI (reading cards + log) tetap sinkron.
+    let _suhu = 28.5, _ph = 6.2;
+
+    function driftVal(val, min, max, delta) {
+      return Math.min(max, Math.max(min, +(val + (Math.random() - 0.5) * 2 * delta).toFixed(2)));
+    }
+
+    async function sendData() {
+      _suhu = driftVal(_suhu, SUHU_MIN, SUHU_MAX, 0.4);
+      _ph   = driftVal(_ph,   PH_MIN,   PH_MAX,   0.08);
+
+      updateReadings(_suhu, _ph);
+
+      try {
+        // ✅ Pakai window.FB.writeSensorLog dari firebase-config.js
+        const key = await window.FB.writeSensorLog(_suhu, _ph);
+
+        sentCount++;
+        cntSent.textContent = sentCount;
+
+        const status = window.FB.getSensorStatus(_suhu, _ph);
+        const statusColor = status === 'normal' ? 'val' : 'style="color:var(--red)"';
+        addLog(
+          `Push OK &nbsp;<span class="val">key=${key}</span> &nbsp;|&nbsp; ` +
+          `suhu=<span class="val">${_suhu.toFixed(1)}°C</span> &nbsp;` +
+          `ph=<span class="val">${_ph.toFixed(2)}</span> &nbsp;` +
+          `status=<span ${statusColor}>${status}</span>`,
+          'ok'
+        );
+      } catch (err) {
+        errCount++;
+        cntErr.textContent = errCount;
+        addLog(`GAGAL mengirim: ${err.message}`, 'err');
+        console.error('[Simulator]', err);
+      }
+    }
+
+    // ── COUNTDOWN ─────────────────────────────────────────────────────────────
+    function startCountdown(seconds) {
+      nextTick = seconds;
+      cntNext.textContent = nextTick;
+      clearInterval(countdownId);
+      countdownId = setInterval(() => {
+        nextTick = nextTick <= 1 ? seconds : nextTick - 1;
+        cntNext.textContent = nextTick;
+      }, 1000);
+    }
+
+    // ── KONEKSI STATUS ────────────────────────────────────────────────────────
+    window.FB.subscribeConnectionState(connected => {
+      addLog(
+        connected
+          ? 'Firebase <span class="val">terhubung</span>'
+          : '<span style="color:var(--red)">Firebase terputus — mencoba reconnect...</span>',
+        'inf'
+      );
+    });
+
+    // ── TOMBOL ────────────────────────────────────────────────────────────────
+    btnStart.addEventListener('click', () => {
+      const seconds = Math.max(1, parseInt(intervalIn.value) || 5);
+      intervalIn.value = seconds;
+
+      addLog(
+        `Simulasi dimulai · path: <span class="val">log_sensor</span> · interval: <span class="val">${seconds}s</span>`,
+        'sys'
+      );
+      setRunning(true);
+      sendData();
+      startCountdown(seconds);
+      intervalId = setInterval(sendData, seconds * 1000);
+    });
+
+    btnStop.addEventListener('click', () => {
+      clearInterval(intervalId);
+      clearInterval(countdownId);
+      intervalId = null;
+      addLog(
+        `Simulasi dihentikan · terkirim: <span class="val">${sentCount}</span> · gagal: <span class="val">${errCount}</span>`,
+        'sys'
+      );
+      setRunning(false);
+    });
+
+    btnClear.addEventListener('click', () => {
+      consoleEl.innerHTML = `
+        <div class="console-empty">
+          <pre>
+  .  *   . .   .  .  .
+    .  *    . * .  *   .
+  .        .        .
+         [cleared]
+          </pre>
+          Log dibersihkan.
+        </div>`;
+      sentCount = errCount = 0;
+      cntSent.textContent = cntErr.textContent = '0';
+    });
+
+    // Siap
+    addLog('window.FB bridge <span class="val">ready</span> — klik Mulai Simulasi', 'inf');
+  });
+</script>
+</body>
+</html>
