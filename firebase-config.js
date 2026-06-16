@@ -267,5 +267,3 @@ window.FB = {
 };
 
 console.log("[Firebase] ✓ window.FB bridge ready");
-EOF
-echo "firebase-config.js written"
