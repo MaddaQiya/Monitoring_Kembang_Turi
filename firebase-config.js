@@ -18,6 +18,9 @@ import { getDatabase, ref, push, set, update,
          remove, get, query, orderByChild,
          limitToLast, startAt, endAt,
          onValue, onChildAdded }                from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword,
+         createUserWithEmailAndPassword,
+         signOut, onAuthStateChanged }          from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 /* ── Config ── */
 const firebaseConfig = {
@@ -31,10 +34,40 @@ const firebaseConfig = {
   measurementId:     "G-FC4JNVJWD5"
 };
 
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
 
 console.log("[Firebase] ✓ Connected to:", firebaseConfig.databaseURL);
+
+/* ============================================================
+   HELPERS — AUTHENTICATION
+   (Dipakai oleh index.html untuk login. akun.html memakai
+   secondary app instance-nya sendiri untuk createUser, lihat
+   komentar di akun.html.)
+============================================================ */
+
+/** Login dengan email & password. Return Firebase user object. */
+async function loginUser(email, password) {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+}
+
+/** Ambil data profil user (nama, role, dll) dari /users/{uid} */
+async function getUserProfile(uid) {
+  const snap = await get(ref(db, `users/${uid}`));
+  return snap.exists() ? snap.val() : null;
+}
+
+/** Sign out user yang sedang login */
+async function signOutUser() {
+  await signOut(auth);
+}
+
+/** Subscribe ke perubahan status login. Returns unsub function. */
+function subscribeAuthState(callback) {
+  return onAuthStateChanged(auth, callback);
+}
 
 /* ============================================================
    DEFAULTS
@@ -255,7 +288,7 @@ async function _doSimWrite() {
    Usage:  window.FB.getUsers().then(...)
 ============================================================ */
 window.FB = {
-  db, DEFAULT_THRESHOLDS,
+  db, auth, firebaseConfig, DEFAULT_THRESHOLDS,
   writeSensorLog, getRecentLogs, getLogsByRange,
   subscribeLatestSensor, subscribeNewSensor, subscribeConnectionState,
   getUsers, addUser, updateUser, deleteUser,
@@ -264,6 +297,7 @@ window.FB = {
   todayISO, daysAgoISO, formatDateLabel, formatDateTime,
   startSimulator, stopSimulator,
   getSensorStatus,
+  loginUser, getUserProfile, signOutUser, subscribeAuthState,
 };
 
 console.log("[Firebase] ✓ window.FB bridge ready");

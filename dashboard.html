@@ -341,16 +341,6 @@
       </div>
     </a>
 
-    <div class="sb-role-section">
-      <div class="sb-role-label">Ubah Role (Simulasi)</div>
-      <select class="sb-role-select" id="roleSelect" onchange="changeRole(this.value)">
-        <option value="manajer">Manajer</option>
-        <option value="asisten" selected>Asisten Kebun</option>
-        <option value="pekerja">Pekerja Lahan</option>
-        <option value="admin">Admin IT</option>
-      </select>
-    </div>
-
     <nav class="sb-nav">
       <div class="sb-nav-group-label">Menu Utama</div>
       <a href="dashboard.html" class="sb-link active">
@@ -598,13 +588,7 @@
     t.className=`toast ${type}`;t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'),3500);
   }
-
-  function changeRole(v){
-    const map={manajer:{n:'Akun Manajer',i:'M'},asisten:{n:'Akun Asisten',i:'A'},pekerja:{n:'Akun Pekerja',i:'P'},admin:{n:'Akun Admin',i:'A'}};
-    const r=map[v]||map.asisten;
-    document.getElementById('profileName').textContent=r.n;
-    document.getElementById('avatarEl').textContent=r.i;
-  }
 </script>
+<script src="auth-guard.js"></script>
 </body>
 </html>

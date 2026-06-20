@@ -142,11 +142,11 @@
       <div class="card-desktop-title">Selamat Datang 👋</div>
       <p class="card-desktop-sub">Masuk ke akun Kembang Turi Anda</p>
 
-      <!-- Username -->
+      <!-- Email -->
       <div class="form-group">
         <div class="input-wrap">
-          <i class="fa-regular fa-user ico"></i>
-          <input type="text" id="username" placeholder="Nama pengguna" autocomplete="username"/>
+          <i class="fa-regular fa-envelope ico"></i>
+          <input type="email" id="email" placeholder="Email" autocomplete="username"/>
         </div>
       </div>
 
@@ -159,27 +159,6 @@
             <i class="fa-regular fa-eye" id="eyeIcon"></i>
           </button>
         </div>
-      </div>
-
-      <!-- Role selector -->
-      <div class="form-group">
-        <div class="input-wrap">
-          <i class="fa-solid fa-user-tag ico"></i>
-          <select id="roleSelect" onchange="onRoleChange()">
-            <option value="">— Pilih Role —</option>
-            <option value="Manajer">Manajer</option>
-            <option value="Asisten Kebun">Asisten Kebun</option>
-            <option value="Pekerja Lahan">Pekerja Lahan</option>
-            <option value="Admin IT">Admin IT</option>
-          </select>
-          <i class="fa-solid fa-chevron-down select-arrow"></i>
-        </div>
-      </div>
-
-      <!-- Role access hint -->
-      <div class="role-hint" id="roleHint">
-        <i class="fa-solid fa-circle-info"></i>
-        <span id="roleHintText"></span>
       </div>
 
       <div class="form-opts">
@@ -207,27 +186,9 @@
 
 <!-- Load auth-guard first so AuthGuard object is available -->
 <script src="auth-guard.js"></script>
+<!-- Firebase Modular SDK v12 (module script, exposes window.FB bridge) -->
+<script type="module" src="firebase-config.js"></script>
 <script>
-  /* Role access hints shown below selector */
-  const HINTS = {
-    'Manajer':       'Akses: Dashboard · Laporan · Ambang Batas',
-    'Asisten Kebun': 'Akses: Dashboard · Laporan · Ambang Batas',
-    'Pekerja Lahan': 'Akses: Dashboard saja',
-    'Admin IT':      'Akses: Status Sistem · Manajemen Akun',
-  };
-
-  function onRoleChange() {
-    const role  = document.getElementById('roleSelect').value;
-    const hint  = document.getElementById('roleHint');
-    const htext = document.getElementById('roleHintText');
-    if (role && HINTS[role]) {
-      htext.textContent = HINTS[role];
-      hint.classList.add('show');
-    } else {
-      hint.classList.remove('show');
-    }
-  }
-
   function togglePass() {
     const inp  = document.getElementById('password');
     const icon = document.getElementById('eyeIcon');
@@ -236,50 +197,80 @@
     icon.classList.toggle('fa-eye-slash');
   }
 
-  function handleLogin() {
-    const nama = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const role = document.getElementById('roleSelect').value;
-    const err  = document.getElementById('errMsg');
-    const et   = document.getElementById('errText');
-    err.classList.remove('show');
-
-    if (!nama)  { et.textContent='Nama pengguna wajib diisi.';     err.classList.add('show'); return; }
-    if (!pass)  { et.textContent='Kata sandi wajib diisi.';        err.classList.add('show'); return; }
-    if (!role)  { et.textContent='Pilih role / peran Anda dahulu.';err.classList.add('show'); return; }
-
-    /* Loading state */
+  function setLoading(isLoading) {
     const btn=document.getElementById('btnLogin'), sp=document.getElementById('spinner'),
           bi=document.getElementById('btnIcon'),   bt=document.getElementById('btnText');
-    btn.classList.add('loading'); sp.classList.add('show');
-    bi.style.display='none'; bt.textContent='Memverifikasi...';
+    if (isLoading) {
+      btn.classList.add('loading'); sp.classList.add('show');
+      bi.style.display='none'; bt.textContent='Memverifikasi...';
+    } else {
+      btn.classList.remove('loading'); sp.classList.remove('show');
+      bi.style.display=''; bt.textContent='Masuk Sistem';
+    }
+  }
 
-    /*
-    ┌──────────────────────────────────────────────────────────────┐
-    │  INTEGRASI FIREBASE AUTH (opsional, ganti setTimeout ini):   │
-    │                                                              │
-    │  firebase.auth()                                             │
-    │    .signInWithEmailAndPassword(nama, pass)                   │
-    │    .then(cred => {                                           │
-    │      AuthGuard.login(cred.user.displayName, role);           │
-    │      window.location.replace(AuthGuard.ROLES[role].defaultPage); │
-    │    })                                                        │
-    │    .catch(e => { et.textContent=e.message;                  │
-    │                  err.classList.add('show');                  │
-    │                  btn.classList.remove('loading'); ... });    │
-    └──────────────────────────────────────────────────────────────┘
-    */
-    setTimeout(() => {
-      /* Simpan session via AuthGuard */
-      AuthGuard.login(nama, role);
-      /* Redirect ke default page sesuai role */
-      window.location.replace(AuthGuard.ROLES[role].defaultPage);
-    }, 1000);
+  /* Pesan error Firebase Auth yang lebih ramah pengguna */
+  function friendlyAuthError(code) {
+    const map = {
+      'auth/invalid-email':        'Format email tidak valid.',
+      'auth/user-disabled':        'Akun ini telah dinonaktifkan.',
+      'auth/user-not-found':       'Email tidak terdaftar.',
+      'auth/wrong-password':       'Kata sandi salah.',
+      'auth/invalid-credential':   'Email atau kata sandi salah.',
+      'auth/too-many-requests':    'Terlalu banyak percobaan. Coba lagi nanti.',
+      'auth/network-request-failed': 'Koneksi gagal. Periksa internet Anda.',
+    };
+    return map[code] || 'Gagal masuk. Periksa kembali email & kata sandi Anda.';
+  }
+
+  async function handleLogin() {
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value.trim();
+    const err   = document.getElementById('errMsg');
+    const et    = document.getElementById('errText');
+    err.classList.remove('show');
+
+    if (!email) { et.textContent='Email wajib diisi.';      err.classList.add('show'); return; }
+    if (!pass)  { et.textContent='Kata sandi wajib diisi.'; err.classList.add('show'); return; }
+
+    if (!window.FB) {
+      et.textContent = 'Firebase belum siap, coba lagi sebentar.';
+      err.classList.add('show');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      /* 1. Autentikasi via Firebase Auth */
+      const user = await window.FB.loginUser(email, pass);
+
+      /* 2. Ambil profil (nama + role) dari Realtime Database */
+      const profile = await window.FB.getUserProfile(user.uid);
+      if (!profile || !profile.role) {
+        throw { code: 'profile-missing', message: 'Profil pengguna tidak ditemukan di database.' };
+      }
+
+      const roleCfg = AuthGuard.ROLES[profile.role];
+      if (!roleCfg) {
+        throw { code: 'role-invalid', message: `Role "${profile.role}" tidak dikenali sistem.` };
+      }
+
+      /* 3. Simpan sesi via AuthGuard & redirect ke halaman default role */
+      AuthGuard.login(profile.username || profile.nama || user.email, profile.role);
+      window.location.replace(roleCfg.defaultPage);
+
+    } catch (e) {
+      setLoading(false);
+      et.textContent = e.code === 'profile-missing' || e.code === 'role-invalid'
+        ? e.message
+        : friendlyAuthError(e.code);
+      err.classList.add('show');
+    }
   }
 
   document.addEventListener('keydown', e => { if(e.key==='Enter') handleLogin(); });
 
-  /* Auto-redirect jika sudah login */
+  /* Auto-redirect jika sudah login (sesi lokal AuthGuard) */
   (function() {
     const user = AuthGuard.getUser();
     if (user && user.role && AuthGuard.ROLES[user.role]) {
