@@ -154,6 +154,20 @@
     .modal-field label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gr500);margin-bottom:6px;}
     .modal-field input,.modal-field select{width:100%;padding:13px 14px;border:1.5px solid var(--gr200);border-radius:12px;font-size:14.5px;font-family:var(--font);color:var(--gr900);background:var(--gr50);outline:none;transition:border-color .2s;}
     .modal-field input:focus,.modal-field select:focus{border-color:var(--g500);background:#fff;}
+
+    /* ── Input Group: prefix statis "+62" + input nomor HP (seamless) ── */
+    .input-group{display:flex;align-items:stretch;width:100%;}
+    .input-group-prefix{
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      padding:13px 12px;background:var(--gr100);border:1.5px solid var(--gr200);border-right:none;
+      border-radius:12px 0 0 12px;font-size:14.5px;font-weight:700;font-family:var(--font);
+      color:var(--gr600);user-select:none;white-space:nowrap;
+    }
+    .input-group input{
+      flex:1;min-width:0;width:auto;border-radius:0 12px 12px 0!important;
+    }
+    .input-group:focus-within .input-group-prefix{border-color:var(--g500);}
+    .input-group:focus-within input{border-color:var(--g500);background:#fff;}
     .modal-actions{display:flex;gap:10px;margin-top:18px;}
     .btn-cancel{flex:1;padding:14px;background:var(--gr100);border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .2s;color:var(--gr700);}
     .btn-cancel:hover{background:var(--gr200);}
@@ -194,10 +208,6 @@
       <div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div>
       <div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div>
     </a>
-    <div class="sb-role-section">
-      <div class="sb-role-label">Ubah Role (Simulasi)</div>
-      <select class="sb-role-select"><option>Manajer</option><option>Asisten Kebun</option><option>Pekerja Lahan</option><option selected>Admin IT</option></select>
-    </div>
     <nav class="sb-nav">
       <div class="sb-nav-group-label">Menu Utama</div>
       <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -265,15 +275,22 @@
   <div class="modal-sheet">
     <div class="modal-handle" onclick="closeModal('editOverlay')"></div>
     <div class="modal-title">Edit Pengguna</div>
-    <div class="modal-sub">Perubahan langsung tersimpan ke Firebase</div>
-    <div class="modal-field"><label>Nama Lengkap</label><input type="text" id="editName"/></div>
+    <div class="modal-sub">Mengubah profil di Realtime Database (email & password login tidak berubah)</div>
     <div class="modal-field"><label>Username</label><input type="text" id="editUsername" placeholder="tanpa @"/></div>
+    <div class="modal-field">
+      <label>Nomor WhatsApp</label>
+      <div class="input-group">
+        <span class="input-group-prefix">+62</span>
+        <input type="tel" id="editNoHp" placeholder="8*******" inputmode="numeric"/>
+      </div>
+      <span class="field-hint" id="editNoHpErr" style="display:none;color:var(--r600,#dc2626);font-size:11.5px;margin-top:4px;">Wajib diisi, masukkan nomor HP setelah +62 (mis. 85559226121)</span>
+    </div>
     <div class="modal-field"><label>Role / Peran</label>
       <select id="editRole">
-        <option value="Manajer">Manajer</option>
-        <option value="Asisten">Asisten Kebun</option>
-        <option value="Pekerja">Pekerja Lahan</option>
-        <option value="Admin">Admin IT</option>
+        <option value="pekerja">Pekerja Lahan</option>
+        <option value="asisten">Asisten Kebun</option>
+        <option value="manajer">Manajer</option>
+        <option value="admin">Admin IT</option>
       </select>
     </div>
     <div class="modal-field"><label>Status Akun</label>
@@ -309,15 +326,24 @@
   <div class="modal-sheet">
     <div class="modal-handle" onclick="closeModal('addOverlay')"></div>
     <div class="modal-title">Tambah Pengguna Baru</div>
-    <div class="modal-sub">Data otomatis tersimpan ke Firebase Realtime DB</div>
-    <div class="modal-field"><label>Nama Lengkap</label><input type="text" id="addName" placeholder="Contoh: Andi Pratama"/></div>
+    <div class="modal-sub">Akun login (Firebase Auth) + profil otomatis tersimpan ke Realtime DB</div>
     <div class="modal-field"><label>Username</label><input type="text" id="addUsername" placeholder="andipratama (tanpa @)"/></div>
+    <div class="modal-field"><label>Email</label><input type="email" id="addEmail" placeholder="andi@kembangturi.com"/></div>
+    <div class="modal-field"><label>Password</label><input type="password" id="addPassword" placeholder="Minimal 6 karakter" autocomplete="new-password"/></div>
+    <div class="modal-field">
+      <label>Nomor WhatsApp</label>
+      <div class="input-group">
+        <span class="input-group-prefix">+62</span>
+        <input type="tel" id="addNoHp" placeholder="85559226121" inputmode="numeric"/>
+      </div>
+      <span class="field-hint" id="addNoHpErr" style="display:none;color:var(--r600,#dc2626);font-size:11.5px;margin-top:4px;">Wajib diisi, masukkan nomor HP setelah +62 (mis. 85559226121)</span>
+    </div>
     <div class="modal-field"><label>Role / Peran</label>
       <select id="addRole">
-        <option value="Pekerja">Pekerja Lahan</option>
-        <option value="Asisten">Asisten Kebun</option>
-        <option value="Manajer">Manajer</option>
-        <option value="Admin">Admin IT</option>
+        <option value="pekerja">Pekerja Lahan</option>
+        <option value="asisten">Asisten Kebun</option>
+        <option value="manajer">Manajer</option>
+        <option value="admin">Admin IT</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -343,9 +369,11 @@
      NOTE: type="module" is required for ES imports
 ══════════════════════════════════════════════ -->
 <script type="module">
-import { initializeApp }           from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { initializeApp, deleteApp }   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getDatabase, ref, push,
-         update, remove, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+         set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword,
+         signOut }                     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 /* ── Firebase Config (your real credentials) ── */
 const firebaseConfig = {
@@ -362,11 +390,29 @@ const app      = initializeApp(firebaseConfig);
 const db       = getDatabase(app);
 const usersRef = ref(db, 'users');
 
+/* ────────────────────────────────────────────
+   SECONDARY FIREBASE APP — khusus untuk membuat
+   akun baru via createUserWithEmailAndPassword.
+   Tujuannya: createUserWithEmailAndPassword pada
+   instance auth PRIMARY akan otomatis login sebagai
+   user baru tsb & menendang sesi admin yang sedang
+   aktif. Dengan app kedua (nama unik), proses create
+   user terjadi di "auth space" terpisah, lalu kita
+   sign-out instance kedua itu — sesi admin di app
+   utama tidak pernah tersentuh sama sekali.
+──────────────────────────────────────────── */
+const secondaryApp  = initializeApp(firebaseConfig, 'SecondaryAppForUserCreation');
+const secondaryAuth = getAuth(secondaryApp);
+
 /* ── Avatar colors & role CSS map ── */
 const AV = ['av-indigo','av-green','av-orange','av-purple','av-teal','av-rose','av-sky'];
 const ROLE_CLS = {
-  Manajer:'role-manajer', Asisten:'role-asisten',
-  Pekerja:'role-pekerja', Admin:'role-admin'
+  manajer: 'role-manajer', asisten: 'role-asisten',
+  pekerja: 'role-pekerja', admin:   'role-admin'
+};
+const ROLE_LABEL = {
+  manajer: 'Manajer', asisten: 'Asisten Kebun',
+  pekerja: 'Pekerja Lahan', admin: 'Admin IT'
 };
 
 /* ── Local state ── */
@@ -422,18 +468,19 @@ function renderUsers(list) {
   }
   es.classList.remove('show');
   ul.innerHTML = list.map((u, i) => {
-    const nama   = u.nama || u.name || '?';
+    const nama   = u.nama || u.name || u.username || '?';
     const uname  = u.username ? `@${u.username}` : '-';
-    const role   = u.role || 'Pekerja';
+    const role   = u.role || 'pekerja';
+    const roleTxt= ROLE_LABEL[role] || role;
     const active = u.active !== false;
     return `
       <div class="user-card">
         <div class="user-avatar ${AV[i % AV.length]}">${nama.charAt(0).toUpperCase()}</div>
         <div class="user-info">
           <div class="user-name">${nama}</div>
-          <div class="user-uname">${uname}</div>
+          <div class="user-uname">${u.email || uname}</div>
           <div class="user-badges">
-            <span class="role-badge ${ROLE_CLS[role] || 'role-pekerja'}">${role}</span>
+            <span class="role-badge ${ROLE_CLS[role] || 'role-pekerja'}">${roleTxt}</span>
             <span class="status-dot ${active ? 'dot-on' : 'dot-off'}"></span>
             <span class="status-txt ${active ? 'active' : 'off'}">${active ? 'Aktif' : 'Nonaktif'}</span>
           </div>
@@ -463,7 +510,8 @@ window.filterUsers = () => {
   const filtered = allUsers.filter(u =>
     (u.nama||u.name||'').toLowerCase().includes(q) ||
     (u.role||'').toLowerCase().includes(q) ||
-    (u.username||'').toLowerCase().includes(q)
+    (u.username||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q)
   );
   renderUsers(filtered);
 };
@@ -500,28 +548,104 @@ window.showToast = (msg, type='ok') => {
 };
 
 /* ────────────────────────────────────────────
-   7. ADD USER  → Firebase push()
+   6b. NOMOR WHATSAPP — sanitasi & validasi
+      Input hanya berisi nomor SETELAH "+62"
+      (prefix "+62" statis di UI, tidak diketik user).
+
+      sanitizeNoHpInput(): bersihkan input mentah —
+        - buang semua karakter non-digit
+        - jika diawali "0" (mis. user ketik 085559226121),
+          hapus "0" di depan → 85559226121
+      buildFullNoHp():     gabungkan "+62" + nomor bersih
+      isValidNoHpDigits(): validasi 8–13 digit setelah dibersihkan
+──────────────────────────────────────────── */
+function sanitizeNoHpInput(raw) {
+  let digits = (raw || '').replace(/\D/g, '');   // buang semua selain angka
+  if (digits.startsWith('0')) digits = digits.slice(1); // 085559226121 → 85559226121
+  return digits;
+}
+function buildFullNoHp(raw) {
+  return '+62' + sanitizeNoHpInput(raw);
+}
+function isValidNoHpDigits(raw) {
+  const digits = sanitizeNoHpInput(raw);
+  return /^\d{8,13}$/.test(digits);
+}
+/** Potong "+62" dari nomor lengkap di database → sisakan nomor belakangnya saja,
+ *  untuk ditampilkan di kotak input saat modal Edit dibuka. */
+function stripNoHpPrefix(fullNoHp) {
+  if (!fullNoHp) return '';
+  return fullNoHp.startsWith('+62') ? fullNoHp.slice(3) : fullNoHp.replace(/^\+?62/, '');
+}
+
+/* ────────────────────────────────────────────
+   7. ADD USER  → Firebase Auth (secondary app)
+      + simpan profil ke Realtime Database
 ──────────────────────────────────────────── */
 window.openAddModal = () => {
-  ['addName','addUsername'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('addRole').value = 'Pekerja';
+  ['addUsername','addEmail','addPassword','addNoHp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('addNoHpErr').style.display = 'none';
+  document.getElementById('addRole').value = 'pekerja';
   window.openModal('addOverlay');
 };
 
 window.addUser = async () => {
-  const nama     = document.getElementById('addName').value.trim();
   const username = document.getElementById('addUsername').value.trim().replace(/^@/,'');
+  const email    = document.getElementById('addEmail').value.trim();
+  const password = document.getElementById('addPassword').value;
+  const noHpRaw  = document.getElementById('addNoHp').value;
   const role     = document.getElementById('addRole').value;
-  if (!nama || !username) { window.showToast('Nama dan username wajib diisi!','error'); return; }
+
+  if (!username || !email || !password) {
+    window.showToast('Username, email, dan password wajib diisi!','error');
+    return;
+  }
+  if (password.length < 6) {
+    window.showToast('Password minimal 6 karakter!','error');
+    return;
+  }
+  if (!isValidNoHpDigits(noHpRaw)) {
+    document.getElementById('addNoHpErr').style.display = 'block';
+    window.showToast('Nomor WhatsApp wajib diisi (8–13 digit setelah +62)!','error');
+    return;
+  }
+  document.getElementById('addNoHpErr').style.display = 'none';
+  const noHp = buildFullNoHp(noHpRaw);   // mis. "85559226121" → "+6285559226121"
 
   setBtn('addSaveBtn', true, '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:7px"></i>Menyimpan...');
   try {
-    await push(usersRef, { nama, username, role, active: true, createdAt: Date.now() });
+    /* 1. Buat akun login via secondary auth instance.
+          Ini TIDAK mempengaruhi sesi admin yang sedang
+          login di instance auth utama. */
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const uid  = cred.user.uid;
+
+    /* 2. Selesai membuat user, langsung sign-out dari
+          instance kedua supaya tidak menumpuk sesi. */
+    await signOut(secondaryAuth);
+
+    /* 3. Simpan data pelengkap ke Realtime Database,
+          key-nya = uid (bukan push key), supaya bisa
+          dibaca langsung saat login via /users/{uid}. */
+    await set(ref(db, `users/${uid}`), {
+      username,
+      email,
+      no_hp: noHp,
+      role,
+      active: true,
+      createdAt: Date.now(),
+    });
+
     window.closeModal('addOverlay');
-    window.showToast('✅ Pengguna berhasil ditambahkan ke Firebase!','ok');
+    window.showToast('✅ Akun & profil berhasil dibuat!','ok');
     /* onValue listener will auto-refresh the list */
   } catch(e) {
-    window.showToast('Gagal menyimpan: ' + e.message, 'error');
+    const msg = {
+      'auth/email-already-in-use': 'Email sudah terdaftar.',
+      'auth/invalid-email':        'Format email tidak valid.',
+      'auth/weak-password':        'Password terlalu lemah (min. 6 karakter).',
+    }[e.code] || ('Gagal menyimpan: ' + e.message);
+    window.showToast(msg, 'error');
   } finally {
     setBtn('addSaveBtn', false, '<i class="fa-solid fa-user-plus" style="margin-right:7px"></i>Tambahkan');
   }
@@ -534,23 +658,31 @@ function openEditModal(key) {
   editingKey = key;
   const u = allUsers.find(x => x.key === key);
   if (!u) return;
-  document.getElementById('editName').value     = u.nama || u.name || '';
   document.getElementById('editUsername').value = u.username || '';
-  document.getElementById('editRole').value     = u.role || 'Pekerja';
+  document.getElementById('editNoHp').value     = stripNoHpPrefix(u.no_hp);  // "+6285559226121" → "85559226121"
+  document.getElementById('editNoHpErr').style.display = 'none';
+  document.getElementById('editRole').value     = u.role || 'pekerja';
   document.getElementById('editStatus').value   = u.active !== false ? 'active' : 'inactive';
   window.openModal('editOverlay');
 }
 
 window.saveEdit = async () => {
-  const nama     = document.getElementById('editName').value.trim();
   const username = document.getElementById('editUsername').value.trim().replace(/^@/,'');
+  const noHpRaw  = document.getElementById('editNoHp').value;
   const role     = document.getElementById('editRole').value;
   const active   = document.getElementById('editStatus').value === 'active';
-  if (!nama) { window.showToast('Nama tidak boleh kosong!','error'); return; }
+  if (!username) { window.showToast('Username tidak boleh kosong!','error'); return; }
+  if (!isValidNoHpDigits(noHpRaw)) {
+    document.getElementById('editNoHpErr').style.display = 'block';
+    window.showToast('Nomor WhatsApp wajib diisi (8–13 digit setelah +62)!','error');
+    return;
+  }
+  document.getElementById('editNoHpErr').style.display = 'none';
+  const noHp = buildFullNoHp(noHpRaw);   // mis. "85559226121" → "+6285559226121"
 
   setBtn('editSaveBtn', true, '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:7px"></i>Menyimpan...');
   try {
-    await update(ref(db, `users/${editingKey}`), { nama, username, role, active, updatedAt: Date.now() });
+    await update(ref(db, `users/${editingKey}`), { username, no_hp: noHp, role, active, updatedAt: Date.now() });
     window.closeModal('editOverlay');
     window.showToast('✅ Data pengguna berhasil diperbarui!','ok');
   } catch(e) {
@@ -566,7 +698,7 @@ window.saveEdit = async () => {
 function openDelModal(key) {
   deletingKey = key;
   const u = allUsers.find(x => x.key === key);
-  document.getElementById('delTargetName').textContent = u ? (u.nama || u.name || '-') : '-';
+  document.getElementById('delTargetName').textContent = u ? (u.username || u.email || '-') : '-';
   window.openModal('delOverlay');
 }
 
@@ -583,5 +715,6 @@ window.confirmDelete = async () => {
   }
 };
 </script>
+<script src="auth-guard.js"></script>
 </body>
 </html>

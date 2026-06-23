@@ -115,6 +115,77 @@
     .version{text-align:center;margin-top:20px;font-size:11px;color:var(--gr400);}
     .help-btn{position:fixed;bottom:20px;right:20px;width:40px;height:40px;background:var(--gr700);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:background .2s;z-index:99;}
     .help-btn:hover{background:var(--gr900);}
+
+    /* ── Reset Password Modal ── */
+    .modal-backdrop{
+      position:fixed;inset:0;z-index:900;
+      background:rgba(17,24,39,.45);
+      backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+      display:flex;align-items:center;justify-content:center;padding:20px;
+      opacity:0;pointer-events:none;
+      transition:opacity .22s ease;
+    }
+    .modal-backdrop.open{opacity:1;pointer-events:all;}
+    .reset-card{
+      background:#fff;border-radius:20px;
+      padding:32px 28px 28px;width:100%;max-width:400px;
+      box-shadow:0 16px 48px rgba(0,0,0,.16),0 2px 8px rgba(0,0,0,.06);
+      transform:translateY(18px) scale(.97);
+      transition:transform .28s cubic-bezier(.34,1.4,.64,1);
+    }
+    .modal-backdrop.open .reset-card{transform:none;}
+
+    .reset-icon{
+      width:52px;height:52px;background:var(--g100);border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;color:var(--g600);margin:0 auto 18px;
+    }
+    .reset-title{font-size:18px;font-weight:800;color:var(--gr900);text-align:center;letter-spacing:-.3px;margin-bottom:6px;}
+    .reset-sub{font-size:13px;color:var(--gr500);text-align:center;line-height:1.6;margin-bottom:22px;}
+
+    /* input & focus-ring — sama persis dengan input di kartu login */
+    .reset-input-wrap{position:relative;display:flex;align-items:center;margin-bottom:10px;}
+    .reset-input-wrap .ico{position:absolute;left:14px;color:var(--gr400);font-size:14px;pointer-events:none;}
+    .reset-input-wrap input{
+      width:100%;padding:13px 14px 13px 42px;
+      border:1.5px solid var(--gr200);border-radius:12px;
+      font-size:14.5px;font-family:var(--font);
+      background:var(--gr50);color:var(--gr900);outline:none;
+      transition:border-color .2s,box-shadow .2s,background .2s;
+    }
+    .reset-input-wrap input:focus{border-color:var(--g500);background:#fff;box-shadow:0 0 0 3px rgba(34,197,94,.12);}
+    .reset-input-wrap input::placeholder{color:var(--gr400);}
+
+    /* feedback strip */
+    .reset-feedback{
+      display:none;align-items:center;gap:8px;font-size:13px;font-weight:600;
+      padding:10px 13px;border-radius:10px;margin-bottom:14px;animation:shake .4s ease;
+    }
+    .reset-feedback.show{display:flex;}
+    .reset-feedback.err{background:var(--r50);border:1px solid #fecaca;color:var(--r500);}
+    .reset-feedback.ok{background:var(--g50);border:1.5px solid var(--g200);color:var(--g700);}
+    .reset-feedback i{flex-shrink:0;font-size:14px;}
+
+    /* buttons */
+    .reset-actions{display:flex;gap:10px;margin-top:4px;}
+    .reset-btn-cancel{
+      flex:1;padding:13px;background:var(--gr100);border:none;border-radius:12px;
+      font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;
+      color:var(--gr700);transition:background .18s;
+    }
+    .reset-btn-cancel:hover{background:var(--gr200);}
+    .reset-btn-send{
+      flex:2;padding:13px;background:var(--g600);color:#fff;border:none;border-radius:12px;
+      font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      transition:background .18s,transform .15s,box-shadow .18s;
+      box-shadow:0 4px 12px rgba(22,163,74,.3);
+    }
+    .reset-btn-send:hover{background:var(--g700);transform:translateY(-1px);}
+    .reset-btn-send:active{transform:none;}
+    .reset-btn-send.loading{opacity:.8;pointer-events:none;}
+    .rst-spinner{display:none;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+    .rst-spinner.show{display:block;}
   </style>
 </head>
 <body>
@@ -142,11 +213,11 @@
       <div class="card-desktop-title">Selamat Datang 👋</div>
       <p class="card-desktop-sub">Masuk ke akun Kembang Turi Anda</p>
 
-      <!-- Username -->
+      <!-- Email -->
       <div class="form-group">
         <div class="input-wrap">
-          <i class="fa-regular fa-user ico"></i>
-          <input type="text" id="username" placeholder="Nama pengguna" autocomplete="username"/>
+          <i class="fa-regular fa-envelope ico"></i>
+          <input type="email" id="email" placeholder="Email" autocomplete="username"/>
         </div>
       </div>
 
@@ -161,30 +232,9 @@
         </div>
       </div>
 
-      <!-- Role selector -->
-      <div class="form-group">
-        <div class="input-wrap">
-          <i class="fa-solid fa-user-tag ico"></i>
-          <select id="roleSelect" onchange="onRoleChange()">
-            <option value="">— Pilih Role —</option>
-            <option value="Manajer">Manajer</option>
-            <option value="Asisten Kebun">Asisten Kebun</option>
-            <option value="Pekerja Lahan">Pekerja Lahan</option>
-            <option value="Admin IT">Admin IT</option>
-          </select>
-          <i class="fa-solid fa-chevron-down select-arrow"></i>
-        </div>
-      </div>
-
-      <!-- Role access hint -->
-      <div class="role-hint" id="roleHint">
-        <i class="fa-solid fa-circle-info"></i>
-        <span id="roleHintText"></span>
-      </div>
-
       <div class="form-opts">
         <label class="chk-label"><input type="checkbox" id="remember"/> Ingat Saya</label>
-        <a href="#" class="forgot">Lupa Kata Sandi?</a>
+        <a href="#" class="forgot" onclick="openResetModal(); return false;">Lupa Kata Sandi?</a>
       </div>
 
       <div class="err-msg" id="errMsg">
@@ -203,31 +253,53 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     MODAL — LUPA KATA SANDI
+     Tersembunyi secara default (.open ditambah
+     via JS saat link "Lupa Kata Sandi?" diklik)
+════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="resetModal" onclick="handleBackdropClick(event)">
+  <div class="reset-card" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+
+    <div class="reset-icon"><i class="fa-solid fa-key"></i></div>
+    <div class="reset-title" id="resetTitle">Reset Kata Sandi</div>
+    <p class="reset-sub">Masukkan email akun Anda. Kami akan mengirim tautan untuk membuat kata sandi baru.</p>
+
+    <div class="reset-input-wrap">
+      <i class="fa-regular fa-envelope ico"></i>
+      <input type="email" id="resetEmail" placeholder="Email terdaftar" autocomplete="email"
+             onkeydown="if(event.key==='Enter') sendResetEmail()"/>
+    </div>
+
+    <!-- Feedback: error / sukses -->
+    <div class="reset-feedback err" id="resetErr">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="resetErrText"></span>
+    </div>
+    <div class="reset-feedback ok" id="resetOk">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>Link reset kata sandi telah dikirim ke email Anda. Silakan periksa kotak masuk atau folder spam.</span>
+    </div>
+
+    <div class="reset-actions">
+      <button class="reset-btn-cancel" onclick="closeResetModal()">Batal</button>
+      <button class="reset-btn-send" id="resetSendBtn" onclick="sendResetEmail()">
+        <div class="rst-spinner" id="rstSpinner"></div>
+        <i class="fa-solid fa-paper-plane" id="rstIcon"></i>
+        <span id="rstBtnText">Kirim Link Reset</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <div class="help-btn" title="Bantuan"><i class="fa-solid fa-question"></i></div>
 
 <!-- Load auth-guard first so AuthGuard object is available -->
 <script src="auth-guard.js"></script>
+<!-- Firebase Modular SDK v12 (module script, exposes window.FB bridge) -->
+<script type="module" src="firebase-config.js"></script>
 <script>
-  /* Role access hints shown below selector */
-  const HINTS = {
-    'Manajer':       'Akses: Dashboard · Laporan · Ambang Batas',
-    'Asisten Kebun': 'Akses: Dashboard · Laporan · Ambang Batas',
-    'Pekerja Lahan': 'Akses: Dashboard saja',
-    'Admin IT':      'Akses: Status Sistem · Manajemen Akun',
-  };
-
-  function onRoleChange() {
-    const role  = document.getElementById('roleSelect').value;
-    const hint  = document.getElementById('roleHint');
-    const htext = document.getElementById('roleHintText');
-    if (role && HINTS[role]) {
-      htext.textContent = HINTS[role];
-      hint.classList.add('show');
-    } else {
-      hint.classList.remove('show');
-    }
-  }
-
   function togglePass() {
     const inp  = document.getElementById('password');
     const icon = document.getElementById('eyeIcon');
@@ -236,50 +308,172 @@
     icon.classList.toggle('fa-eye-slash');
   }
 
-  function handleLogin() {
-    const nama = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const role = document.getElementById('roleSelect').value;
-    const err  = document.getElementById('errMsg');
-    const et   = document.getElementById('errText');
-    err.classList.remove('show');
-
-    if (!nama)  { et.textContent='Nama pengguna wajib diisi.';     err.classList.add('show'); return; }
-    if (!pass)  { et.textContent='Kata sandi wajib diisi.';        err.classList.add('show'); return; }
-    if (!role)  { et.textContent='Pilih role / peran Anda dahulu.';err.classList.add('show'); return; }
-
-    /* Loading state */
+  function setLoading(isLoading) {
     const btn=document.getElementById('btnLogin'), sp=document.getElementById('spinner'),
           bi=document.getElementById('btnIcon'),   bt=document.getElementById('btnText');
-    btn.classList.add('loading'); sp.classList.add('show');
-    bi.style.display='none'; bt.textContent='Memverifikasi...';
+    if (isLoading) {
+      btn.classList.add('loading'); sp.classList.add('show');
+      bi.style.display='none'; bt.textContent='Memverifikasi...';
+    } else {
+      btn.classList.remove('loading'); sp.classList.remove('show');
+      bi.style.display=''; bt.textContent='Masuk Sistem';
+    }
+  }
 
-    /*
-    ┌──────────────────────────────────────────────────────────────┐
-    │  INTEGRASI FIREBASE AUTH (opsional, ganti setTimeout ini):   │
-    │                                                              │
-    │  firebase.auth()                                             │
-    │    .signInWithEmailAndPassword(nama, pass)                   │
-    │    .then(cred => {                                           │
-    │      AuthGuard.login(cred.user.displayName, role);           │
-    │      window.location.replace(AuthGuard.ROLES[role].defaultPage); │
-    │    })                                                        │
-    │    .catch(e => { et.textContent=e.message;                  │
-    │                  err.classList.add('show');                  │
-    │                  btn.classList.remove('loading'); ... });    │
-    └──────────────────────────────────────────────────────────────┘
-    */
-    setTimeout(() => {
-      /* Simpan session via AuthGuard */
-      AuthGuard.login(nama, role);
-      /* Redirect ke default page sesuai role */
-      window.location.replace(AuthGuard.ROLES[role].defaultPage);
-    }, 1000);
+  /* Pesan error Firebase Auth yang lebih ramah pengguna */
+  function friendlyAuthError(code) {
+    const map = {
+      'auth/invalid-email':        'Format email tidak valid.',
+      'auth/user-disabled':        'Akun ini telah dinonaktifkan.',
+      'auth/user-not-found':       'Email tidak terdaftar.',
+      'auth/wrong-password':       'Kata sandi salah.',
+      'auth/invalid-credential':   'Email atau kata sandi salah.',
+      'auth/too-many-requests':    'Terlalu banyak percobaan. Coba lagi nanti.',
+      'auth/network-request-failed': 'Koneksi gagal. Periksa internet Anda.',
+    };
+    return map[code] || 'Gagal masuk. Periksa kembali email & kata sandi Anda.';
+  }
+
+  async function handleLogin() {
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value.trim();
+    const err   = document.getElementById('errMsg');
+    const et    = document.getElementById('errText');
+    err.classList.remove('show');
+
+    if (!email) { et.textContent='Email wajib diisi.';      err.classList.add('show'); return; }
+    if (!pass)  { et.textContent='Kata sandi wajib diisi.'; err.classList.add('show'); return; }
+
+    if (!window.FB) {
+      et.textContent = 'Firebase belum siap, coba lagi sebentar.';
+      err.classList.add('show');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      /* 1. Autentikasi via Firebase Auth */
+      const user = await window.FB.loginUser(email, pass);
+
+      /* 2. Ambil profil (nama + role) dari Realtime Database */
+      const profile = await window.FB.getUserProfile(user.uid);
+      if (!profile || !profile.role) {
+        throw { code: 'profile-missing', message: 'Profil pengguna tidak ditemukan di database.' };
+      }
+
+      const roleCfg = AuthGuard.ROLES[profile.role];
+      if (!roleCfg) {
+        throw { code: 'role-invalid', message: `Role "${profile.role}" tidak dikenali sistem.` };
+      }
+
+      /* 3. Simpan sesi via AuthGuard & redirect ke halaman default role */
+      AuthGuard.login(profile.username || profile.nama || user.email, profile.role);
+      window.location.replace(roleCfg.defaultPage);
+
+    } catch (e) {
+      setLoading(false);
+      et.textContent = e.code === 'profile-missing' || e.code === 'role-invalid'
+        ? e.message
+        : friendlyAuthError(e.code);
+      err.classList.add('show');
+    }
   }
 
   document.addEventListener('keydown', e => { if(e.key==='Enter') handleLogin(); });
 
-  /* Auto-redirect jika sudah login */
+  /* ════════════════════════════════════════════
+     MODAL — LUPA KATA SANDI
+  ════════════════════════════════════════════ */
+  function openResetModal() {
+    const modal = document.getElementById('resetModal');
+    document.getElementById('resetEmail').value  = '';
+    document.getElementById('resetErr').classList.remove('show');
+    document.getElementById('resetOk').classList.remove('show');
+    _resetSendLoading(false);
+    modal.classList.add('open');
+    // Fokus ke input email setelah transisi CSS selesai
+    setTimeout(() => document.getElementById('resetEmail').focus(), 60);
+  }
+
+  function closeResetModal() {
+    document.getElementById('resetModal').classList.remove('open');
+  }
+
+  // Tutup modal jika klik backdrop (area gelap di luar kartu)
+  function handleBackdropClick(e) {
+    if (e.target === document.getElementById('resetModal')) closeResetModal();
+  }
+
+  // Tutup modal dengan Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeResetModal();
+  });
+
+  function _resetSendLoading(isLoading) {
+    const btn  = document.getElementById('resetSendBtn');
+    const sp   = document.getElementById('rstSpinner');
+    const ico  = document.getElementById('rstIcon');
+    const txt  = document.getElementById('rstBtnText');
+    btn.classList.toggle('loading', isLoading);
+    sp.classList.toggle('show', isLoading);
+    ico.style.display  = isLoading ? 'none' : '';
+    txt.textContent    = isLoading ? 'Mengirim...' : 'Kirim Link Reset';
+  }
+
+  function _resetFriendlyError(code) {
+    const map = {
+      'auth/user-not-found':       'Email ini tidak terdaftar di sistem.',
+      'auth/invalid-email':        'Format email tidak valid.',
+      'auth/too-many-requests':    'Terlalu banyak permintaan. Coba lagi beberapa menit.',
+      'auth/network-request-failed':'Koneksi gagal. Periksa internet Anda.',
+      'auth/missing-email':        'Email wajib diisi.',
+    };
+    return map[code] || 'Gagal mengirim email. Coba lagi nanti.';
+  }
+
+  async function sendResetEmail() {
+    const emailVal = document.getElementById('resetEmail').value.trim();
+    const errEl    = document.getElementById('resetErr');
+    const okEl     = document.getElementById('resetOk');
+    errEl.classList.remove('show');
+    okEl.classList.remove('show');
+
+    if (!emailVal) {
+      document.getElementById('resetErrText').textContent = 'Email wajib diisi.';
+      errEl.classList.add('show');
+      return;
+    }
+
+    if (!window.FB) {
+      document.getElementById('resetErrText').textContent = 'Firebase belum siap, coba lagi sebentar.';
+      errEl.classList.add('show');
+      return;
+    }
+
+    _resetSendLoading(true);
+    try {
+      /* sendPasswordResetEmail sudah diimport di firebase-config.js;
+         kita panggil langsung via window.FB.auth + Firebase Auth.
+         Import sendPasswordResetEmail ditambahkan di firebase-config.js
+         (lihat catatan di bawah). */
+      const { sendPasswordResetEmail } = await import(
+        'https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js'
+      );
+      await sendPasswordResetEmail(window.FB.auth, emailVal);
+
+      // Sukses — tampilkan pesan & tutup modal setelah 2.5 detik
+      okEl.classList.add('show');
+      _resetSendLoading(false);
+      setTimeout(() => closeResetModal(), 2500);
+
+    } catch (e) {
+      _resetSendLoading(false);
+      document.getElementById('resetErrText').textContent = _resetFriendlyError(e.code);
+      errEl.classList.add('show');
+    }
+  }
+
+  /* Auto-redirect jika sudah login (sesi lokal AuthGuard) */
   (function() {
     const user = AuthGuard.getUser();
     if (user && user.role && AuthGuard.ROLES[user.role]) {

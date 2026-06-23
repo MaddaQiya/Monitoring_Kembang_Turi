@@ -197,10 +197,6 @@
       <div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div>
       <div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div>
     </a>
-    <div class="sb-role-section">
-      <div class="sb-role-label">Ubah Role (Simulasi)</div>
-      <select class="sb-role-select"><option>Manajer</option><option selected>Asisten Kebun</option><option>Pekerja Lahan</option><option>Admin IT</option></select>
-    </div>
     <nav class="sb-nav">
       <div class="sb-nav-group-label">Menu Utama</div>
       <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -300,6 +296,39 @@
 </nav>
 
 <script>
+  /* ════════════════════════════════════════════════════════
+     FIREBASE INTEGRATION
+     Memakai window.FB.getThresholds() / saveThresholds()
+     yang sudah tersedia dari firebase-config.js
+  ════════════════════════════════════════════════════════ */
+
+  /* Tunggu sampai window.FB siap (module script load async) */
+  function waitForFB(timeoutMs = 8000) {
+    return new Promise((resolve, reject) => {
+      if (window.FB) return resolve(window.FB);
+      const start = Date.now();
+      const iv = setInterval(() => {
+        if (window.FB) { clearInterval(iv); resolve(window.FB); }
+        else if (Date.now() - start > timeoutMs) { clearInterval(iv); reject(new Error('Firebase gagal dimuat')); }
+      }, 100);
+    });
+  }
+
+  /* Isi form dengan nilai dari Firebase saat halaman dimuat */
+  async function loadThresholds() {
+    try {
+      const FB = await waitForFB();
+      const thr = await FB.getThresholds();
+      document.getElementById('phMin').value   = thr.ph_min;
+      document.getElementById('phMax').value   = thr.ph_max;
+      document.getElementById('suhuMax').value = thr.suhu_max;
+      updateHints();
+    } catch (e) {
+      console.error('[Parameter] Gagal memuat threshold:', e);
+      showToast('Gagal memuat data dari server, menampilkan nilai default.', 'error');
+    }
+  }
+
   ['phMin','phMax','suhuMax'].forEach(id=>document.getElementById(id).addEventListener('input',updateHints));
 
   function updateHints(){
@@ -323,7 +352,15 @@
 
   function clearErr(){['phMin','phMax','suhuMax'].forEach(id=>{document.getElementById(id).classList.remove('err');});['phMinErr','phMaxErr','suhuMaxErr'].forEach(id=>{document.getElementById(id).classList.remove('show');});}
 
-  function handleSave(){
+  function setSaveLoading(isLoading) {
+    document.querySelectorAll('.btn-save-desktop, .btn-save-mobile').forEach(btn => {
+      btn.disabled = isLoading;
+      btn.style.opacity = isLoading ? '0.6' : '';
+      btn.style.cursor = isLoading ? 'not-allowed' : '';
+    });
+  }
+
+  async function handleSave(){
     clearErr();
     const mn=parseFloat(document.getElementById('phMin').value);
     const mx=parseFloat(document.getElementById('phMax').value);
@@ -333,8 +370,27 @@
     if(isNaN(mx)||mx<0||mx>14){document.getElementById('phMax').classList.add('err');document.getElementById('phMaxErr').textContent='Nilai pH tidak valid (0–14)';document.getElementById('phMaxErr').classList.add('show');ok=false;}
     if(!isNaN(mn)&&!isNaN(mx)&&mn>=mx){document.getElementById('phMin').classList.add('err');document.getElementById('phMax').classList.add('err');document.getElementById('phMinErr').textContent='pH Min harus lebih kecil dari pH Max';document.getElementById('phMinErr').classList.add('show');showToast('pH Min tidak boleh ≥ pH Max!','error');ok=false;}
     if(isNaN(sm)||sm<20||sm>50){document.getElementById('suhuMax').classList.add('err');document.getElementById('suhuMaxErr').classList.add('show');ok=false;}
-    if(ok){showToast('✅ Perubahan berhasil disimpan!','success');updateHints();}
+    if(!ok) return;
+
+    setSaveLoading(true);
+    try {
+      const FB = await waitForFB();
+      await FB.saveThresholds({ ph_min: mn, ph_max: mx, suhu_max: sm });
+      showToast('✅ Perubahan berhasil disimpan ke server!','success');
+      updateHints();
+    } catch (e) {
+      console.error('[Parameter] Gagal menyimpan threshold:', e);
+      showToast('❌ Gagal menyimpan ke server: ' + e.message, 'error');
+    } finally {
+      setSaveLoading(false);
+    }
   }
+
+  /* Muat data threshold begitu halaman siap */
+  loadThresholds();
 </script>
+<!-- Firebase Modular SDK v12 (module script, exposes window.FB bridge) -->
+<script type="module" src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
 </body>
 </html>

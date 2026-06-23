@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- html2pdf.js: client-side HTML → PDF export (bundles html2canvas + jsPDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -94,8 +96,8 @@
     .summary-grid{
       display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;
     }
-    @media(min-width:768px){gap:14px;margin-bottom:20px;}
-    @media(min-width:1024px){grid-template-columns:repeat(3,1fr);gap:18px;}
+    @media(min-width:768px){.summary-grid{gap:14px;margin-bottom:20px;}}
+    @media(min-width:1024px){.summary-grid{grid-template-columns:repeat(3,1fr);gap:18px;}}
 
     .summary-card{
       background:#fff;border-radius:14px;padding:14px 12px;
@@ -117,13 +119,14 @@
     /* ── Table card ── */
     .table-card{background:#fff;border-radius:16px;border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.04);overflow:hidden;margin-bottom:16px;}
     @media(min-width:768px){.table-card{border-radius:18px;margin-bottom:20px;}}
-    .table-card-hdr{padding:14px 16px 12px;border-bottom:1px solid var(--gr100);}
+    .table-card-hdr{padding:14px 16px 12px;border-bottom:1px solid var(--gr100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
     @media(min-width:768px){.table-card-hdr{padding:18px 20px 14px;}}
     .table-card-title{font-size:14px;font-weight:700;}
     @media(min-width:768px){.table-card-title{font-size:16px;}}
+    .table-card-meta{font-size:12px;color:var(--gr400);font-weight:500;}
 
     .table-wrap{overflow-x:auto;}
-    table{width:100%;border-collapse:collapse;min-width:500px;}
+    table{width:100%;border-collapse:collapse;min-width:560px;}
     thead tr{background:var(--gr50);border-bottom:1.5px solid var(--gr200);}
     th{padding:10px 14px;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--gr500);text-transform:uppercase;text-align:left;white-space:nowrap;}
     @media(min-width:768px){th{padding:12px 18px;font-size:11.5px;}}
@@ -136,6 +139,12 @@
     .badge-ok{background:var(--g100);color:var(--g700);}
     .badge-crit{background:var(--r50);color:var(--r600);border:1px solid var(--r100);}
     .badge-warn{background:var(--y50);color:var(--y600);border:1px solid var(--y400);}
+
+    /* Anomali count chip */
+    .anomali-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:50px;font-size:11.5px;font-weight:700;}
+    .anomali-0{background:var(--g100);color:var(--g700);}
+    .anomali-low{background:var(--y50);color:var(--y600);}
+    .anomali-high{background:var(--r50);color:var(--r600);}
 
     /* Skeleton */
     .sk-bar{height:14px;background:linear-gradient(90deg,var(--gr200) 25%,var(--gr100) 50%,var(--gr200) 75%);background-size:200% 100%;border-radius:6px;animation:shimmer 1.2s infinite;}
@@ -160,7 +169,6 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <a href="dashboard.html" class="sb-brand"><div class="sb-brand-icon"><i class="fa-solid fa-seedling"></i></div><div><div class="sb-brand-name">Kembang Turi</div><div class="sb-brand-sub">Monitoring Greenhouse</div></div></a>
-    <div class="sb-role-section"><div class="sb-role-label">Ubah Role (Simulasi)</div><select class="sb-role-select"><option>Manajer</option><option selected>Asisten Kebun</option><option>Pekerja Lahan</option><option>Admin IT</option></select></div>
     <nav class="sb-nav">
       <div class="sb-nav-group-label">Menu Utama</div>
       <a href="dashboard.html" class="sb-link"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -195,33 +203,60 @@
         </div>
       </div>
 
-      <!-- Summary -->
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="sc-icon" style="color:var(--g600)"><i class="fa-solid fa-temperature-half"></i></div>
-          <div class="sc-val" id="avgSuhu">27.4<span class="unit">°C</span></div>
-          <div class="sc-label">Rata-rata Suhu</div>
-          <div class="sc-sub sub-ok" id="avgSuhuSub">↗ Dalam kondisi ideal</div>
+      <!-- ════════ Area yang akan diekspor ke PDF ════════ -->
+      <div id="reportExportArea">
+        <!-- Header khusus PDF (tersembunyi di layar, muncul saat export) -->
+        <div id="pdfHeader" style="display:none;padding:0 0 16px;">
+          <h1 style="font-size:20px;font-weight:800;color:#15803d;margin-bottom:4px;">Laporan Monitoring Greenhouse — PT Kembang Turi</h1>
+          <p style="font-size:12px;color:#6b7280;" id="pdfPeriodTxt">Periode: -</p>
         </div>
-        <div class="summary-card">
-          <div class="sc-icon" style="color:#3b82f6"><i class="fa-solid fa-droplet"></i></div>
-          <div class="sc-val" id="avgPh">5.9</div>
-          <div class="sc-label">Rata-rata pH</div>
-          <div class="sc-sub sub-ok">↗ Nutrisi stabil</div>
-        </div>
-        <div class="summary-card">
-          <div class="sc-icon" style="color:var(--r500)"><i class="fa-solid fa-bell"></i></div>
-          <div class="sc-val" id="totalAlert">12<span class="unit">x</span></div>
-          <div class="sc-label">Total Anomali</div>
-          <div class="sc-sub sub-err">Naik 8x dari minggu lalu</div>
-        </div>
-      </div>
 
-      <!-- Table -->
-      <div class="table-card">
-        <div class="table-card-hdr"><div class="table-card-title">Rincian Data Harian</div></div>
-        <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Rentang Suhu</th><th>Suhu Rata-rata</th><th>pH Rata-rata</th><th>Status</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+        <!-- Summary -->
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="sc-icon" style="color:var(--g600)"><i class="fa-solid fa-temperature-half"></i></div>
+            <div class="sc-val" id="avgSuhu">--<span class="unit">°C</span></div>
+            <div class="sc-label">Rata-rata Suhu</div>
+            <div class="sc-sub sub-ok" id="avgSuhuSub">Memuat data…</div>
+          </div>
+          <div class="summary-card">
+            <div class="sc-icon" style="color:#3b82f6"><i class="fa-solid fa-droplet"></i></div>
+            <div class="sc-val" id="avgPh">--</div>
+            <div class="sc-label">Rata-rata pH</div>
+            <div class="sc-sub sub-ok" id="avgPhSub">Memuat data…</div>
+          </div>
+          <div class="summary-card">
+            <div class="sc-icon" style="color:var(--r500)"><i class="fa-solid fa-bell"></i></div>
+            <div class="sc-val" id="totalAlert">--<span class="unit">x</span></div>
+            <div class="sc-label">Total Anomali</div>
+            <div class="sc-sub" id="totalAlertSub">Memuat data…</div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <div class="table-card-hdr">
+            <div class="table-card-title">Ringkasan Harian</div>
+            <div class="table-card-meta" id="tableRowCount"></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Rentang Suhu</th>
+                  <th>Suhu Rata-rata</th>
+                  <th>pH Rata-rata</th>
+                  <th>Total Anomali</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
+      <!-- ════════ /Area ekspor PDF ════════ -->
     </main>
   </div>
 </div>
@@ -235,47 +270,263 @@
 </nav>
 
 <script>
-  const today=new Date(),wa=new Date(today);wa.setDate(today.getDate()-6);
-  document.getElementById('dateFrom').value=wa.toISOString().split('T')[0];
-  document.getElementById('dateTo').value=today.toISOString().split('T')[0];
+  /* ── 1. Set default date range (7 hari terakhir) ── */
+  const today = new Date();
+  const weekAgo = new Date(today);
+  weekAgo.setDate(today.getDate() - 6);
+  document.getElementById('dateFrom').value = weekAgo.toISOString().split('T')[0];
+  document.getElementById('dateTo').value   = today.toISOString().split('T')[0];
 
-  const dataA=[
-    {d:'Sen, 10 Okt',r:'24.1 – 29.8',a:'26.5',p:'5.8',s:'ok',l:'Aman'},
-    {d:'Sel, 11 Okt',r:'24.5 – 31.2',a:'27.8',p:'5.7',s:'crit',l:'Suhu Kritis'},
-    {d:'Rab, 12 Okt',r:'23.9 – 28.5',a:'26.2',p:'5.2',s:'warn',l:'pH Kritis'},
-    {d:'Kam, 13 Okt',r:'24.0 – 29.1',a:'27.0',p:'6.0',s:'ok',l:'Aman'},
-    {d:'Jum, 14 Okt',r:'25.1 – 29.5',a:'27.5',p:'6.1',s:'ok',l:'Aman'},
-  ];
-  const dataB=[
-    {d:'Sab, 08 Okt',r:'25.0 – 30.5',a:'28.1',p:'6.3',s:'ok',l:'Aman'},
-    {d:'Min, 09 Okt',r:'24.3 – 29.9',a:'27.2',p:'5.9',s:'ok',l:'Aman'},
-    {d:'Sen, 10 Okt',r:'23.5 – 32.1',a:'28.8',p:'4.8',s:'crit',l:'Kritis'},
-  ];
-  let toggle=false;
+  /* ── 2. State ── */
+  let currentDailyRows = []; // array hasil aggregateByDay yang sedang ditampilkan
 
-  function badge(s,l){
-    const cls={ok:'badge-ok',crit:'badge-crit',warn:'badge-warn'}[s]||'badge-ok';
-    const ico={ok:'fa-check',crit:'fa-xmark',warn:'fa-triangle-exclamation'}[s]||'fa-check';
-    return `<span class="badge ${cls}"><i class="fa-solid ${ico}"></i>${l}</span>`;
+  /* ── 3. Tunggu sampai window.FB siap (module script load async) ── */
+  function waitForFB(timeoutMs = 8000) {
+    return new Promise((resolve, reject) => {
+      if (window.FB) return resolve(window.FB);
+      const start = Date.now();
+      const iv = setInterval(() => {
+        if (window.FB)                       { clearInterval(iv); resolve(window.FB); }
+        else if (Date.now() - start > timeoutMs) { clearInterval(iv); reject(new Error('Firebase gagal dimuat')); }
+      }, 100);
+    });
   }
 
-  function renderTable(data){
-    document.getElementById('tableBody').innerHTML=data.map(r=>`<tr><td>${r.d}</td><td>${r.r} °C</td><td><strong>${r.a} °C</strong></td><td>${r.p}</td><td>${badge(r.s,r.l)}</td></tr>`).join('');
+  /* ── 4. Badge status harian ── */
+  function badgeStatus(status) {
+    const map = {
+      normal:   { cls: 'badge-ok',   ico: 'fa-check',               label: 'Normal' },
+      warning:  { cls: 'badge-warn', ico: 'fa-triangle-exclamation', label: 'Perlu Perhatian' },
+      critical: { cls: 'badge-crit', ico: 'fa-xmark',                label: 'Kritis' },
+    };
+    const m = map[status] || map.normal;
+    return `<span class="badge ${m.cls}"><i class="fa-solid ${m.ico}"></i>${m.label}</span>`;
   }
 
-  function skeleton(){
-    document.getElementById('tableBody').innerHTML=Array(5).fill('').map(()=>`<tr>${Array(5).fill('').map(()=>`<td style="padding:16px 14px"><div class="sk-bar" style="width:${60+Math.random()*40}px"></div></td>`).join('')}</tr>`).join('');
+  /* ── 5. Chip jumlah anomali ── */
+  function anomaliChip(count) {
+    let cls = 'anomali-0';
+    if (count > 2)      cls = 'anomali-high';
+    else if (count > 0) cls = 'anomali-low';
+    return `<span class="anomali-chip ${cls}"><i class="fa-solid fa-bell" style="font-size:10px"></i>${count}x</span>`;
   }
 
-  function showToast(msg){
-    const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;
-    t.className='toast success';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+  /* ── 6. Format label tanggal panjang (misal: "Sabtu, 21 Jun 2025") ── */
+  function formatTanggalHarian(isoDate) {
+    if (!isoDate) return '-';
+    return new Date(isoDate + 'T00:00:00+07:00')
+      .toLocaleDateString('id-ID', {
+        weekday: 'long', day: '2-digit', month: 'short', year: 'numeric',
+        timeZone: 'Asia/Jakarta'
+      });
   }
 
-  function applyFilter(){skeleton();toggle=!toggle;setTimeout(()=>{renderTable(toggle?dataB:dataA);showToast('✅ Data berhasil dimuat!');},1200);}
-  function handleDownload(){showToast('📄 Laporan PDF sedang disiapkan...');setTimeout(()=>showToast('✅ Laporan berhasil diunduh!'),2000);}
+  /* ── 7. Render tabel HARIAN dari hasil aggregateByDay ── */
+  function renderTable(dailyRows) {
+    const tbody = document.getElementById('tableBody');
+    const meta  = document.getElementById('tableRowCount');
 
-  renderTable(dataA);
+    if (!dailyRows || dailyRows.length === 0) {
+      meta.textContent = '0 hari ditemukan';
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px 14px;color:var(--gr400);">
+        <i class="fa-regular fa-folder-open" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+        Belum ada data log tersimpan pada periode ini.
+      </td></tr>`;
+      return;
+    }
+
+    meta.textContent = `${dailyRows.length} hari ditemukan`;
+
+    tbody.innerHTML = dailyRows.map(d => `
+      <tr>
+        <td><strong>${formatTanggalHarian(d.date)}</strong></td>
+        <td style="color:var(--gr500)">${d.suhuRange ?? '-'} °C</td>
+        <td><strong>${typeof d.suhuAvg === 'number' ? d.suhuAvg.toFixed(1) : '-'} °C</strong></td>
+        <td>${typeof d.phAvg === 'number' ? d.phAvg.toFixed(2) : '-'}</td>
+        <td>${anomaliChip(d.alerts ?? 0)}</td>
+        <td>${badgeStatus(d.status ?? 'normal')}</td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 8. Render summary cards dari array daily rows ── */
+  function renderSummary(dailyRows) {
+    if (!dailyRows || !dailyRows.length) {
+      document.getElementById('avgSuhu').innerHTML     = `0.0<span class="unit">°C</span>`;
+      document.getElementById('avgSuhuSub').textContent = 'Tidak ada data';
+      document.getElementById('avgPh').textContent      = '0.00';
+      document.getElementById('avgPhSub').textContent   = 'Tidak ada data';
+      document.getElementById('totalAlert').innerHTML   = `0<span class="unit">x</span>`;
+      document.getElementById('totalAlertSub').textContent = 'Tidak ada anomali';
+      document.getElementById('totalAlertSub').className = 'sc-sub sub-ok';
+      return;
+    }
+
+    // Rata-rata dari daily averages (weighted by day)
+    const suhuAvgs   = dailyRows.map(d => d.suhuAvg).filter(v => typeof v === 'number');
+    const phAvgs     = dailyRows.map(d => d.phAvg).filter(v => typeof v === 'number');
+    const totalAlert = dailyRows.reduce((sum, d) => sum + (d.alerts || 0), 0);
+
+    const grandAvgSuhu = suhuAvgs.length ? (suhuAvgs.reduce((a,b)=>a+b,0) / suhuAvgs.length) : 0;
+    const grandAvgPh   = phAvgs.length   ? (phAvgs.reduce((a,b)=>a+b,0) / phAvgs.length)     : 0;
+
+    // Suhu
+    document.getElementById('avgSuhu').innerHTML = `${grandAvgSuhu.toFixed(1)}<span class="unit">°C</span>`;
+    const suhuOk = grandAvgSuhu <= 30;
+    document.getElementById('avgSuhuSub').textContent = suhuOk ? '↗ Dalam kondisi ideal' : '↗ Perlu pemantauan';
+    document.getElementById('avgSuhuSub').className   = `sc-sub ${suhuOk ? 'sub-ok' : 'sub-err'}`;
+
+    // pH
+    document.getElementById('avgPh').textContent = grandAvgPh.toFixed(2);
+    const phOk = grandAvgPh >= 5.5 && grandAvgPh <= 6.5;
+    document.getElementById('avgPhSub').textContent = phOk ? '↗ Nutrisi stabil' : '↗ pH di luar batas';
+    document.getElementById('avgPhSub').className   = `sc-sub ${phOk ? 'sub-ok' : 'sub-err'}`;
+
+    // Anomali
+    document.getElementById('totalAlert').innerHTML = `${totalAlert}<span class="unit">x</span>`;
+    const daysWithAlert = dailyRows.filter(d => (d.alerts || 0) > 0).length;
+    document.getElementById('totalAlertSub').textContent =
+      totalAlert === 0
+        ? 'Semua hari normal 🎉'
+        : `Terjadi pada ${daysWithAlert} hari dari ${dailyRows.length} hari`;
+    document.getElementById('totalAlertSub').className = `sc-sub ${totalAlert === 0 ? 'sub-ok' : 'sub-err'}`;
+  }
+
+  /* ── 9. Skeleton saat loading ── */
+  function skeleton() {
+    document.getElementById('tableBody').innerHTML = Array(5).fill('').map(() =>
+      `<tr>${Array(6).fill('').map(() =>
+        `<td style="padding:16px 14px"><div class="sk-bar" style="width:${50+Math.random()*50}px"></div></td>`
+      ).join('')}</tr>`
+    ).join('');
+    document.getElementById('tableRowCount').textContent = 'Memuat…';
+  }
+
+  /* ── 10. Toast ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = 'toast success';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  /* ── 11. LOAD DATA: ambil semua log, filter tanggal, lalu aggregateByDay ── */
+  async function loadReportData() {
+    skeleton();
+
+    const fromStr = document.getElementById('dateFrom').value;
+    const toStr   = document.getElementById('dateTo').value;
+    if (!fromStr || !toStr) {
+      showToast('❌ Tanggal dari/sampai wajib diisi.');
+      renderTable([]);
+      renderSummary([]);
+      return;
+    }
+
+    try {
+      const FB = await waitForFB();
+
+      // Konversi ke ms — pakai WIB agar konsisten dengan fungsi aggregateByDay
+      const fromMs = new Date(fromStr + 'T00:00:00+07:00').getTime();
+      const toMs   = new Date(toStr   + 'T23:59:59.999+07:00').getTime();
+
+      // Ambil semua log mentah (tidak pakai index Firebase, aman untuk semua Rules)
+      const allRows  = await FB.getAllLogsRaw();
+      // Filter sesuai rentang tanggal di client-side
+      const filtered = FB.filterLogsByRange(allRows, fromMs, toMs);
+      // Agregasi: log per-detik → ringkasan per hari
+      const daily    = FB.aggregateByDay(filtered);
+
+      currentDailyRows = daily;
+
+      renderTable(daily);
+      renderSummary(daily);
+      updatePeriodText();
+
+      showToast(daily.length
+        ? `✅ Data ${daily.length} hari berhasil dimuat (${filtered.length} log)`
+        : 'ℹ️ Belum ada data pada periode ini.'
+      );
+
+    } catch (e) {
+      console.error('[Laporan] Gagal memuat data:', e);
+      currentDailyRows = [];
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--r500);">
+        <i class="fa-solid fa-circle-exclamation" style="display:block;font-size:20px;margin-bottom:6px;"></i>
+        Gagal memuat data: ${e.message}
+      </td></tr>`;
+      renderSummary([]);
+      document.getElementById('tableRowCount').textContent = '';
+      showToast('❌ Gagal memuat data dari server.');
+    }
+  }
+
+  function applyFilter() { loadReportData(); }
+
+  /* ── 12. Update teks periode di header PDF ── */
+  function updatePeriodText() {
+    const from = document.getElementById('dateFrom').value;
+    const to   = document.getElementById('dateTo').value;
+    const fmt  = iso => {
+      if (!iso) return '-';
+      return new Date(iso + 'T00:00:00+07:00')
+        .toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    };
+    document.getElementById('pdfPeriodTxt').textContent = `Periode: ${fmt(from)} – ${fmt(to)}`;
+  }
+
+  /* ── 13. Export PDF ── */
+  function handleDownload() {
+    if (typeof html2pdf === 'undefined') {
+      showToast('❌ Library PDF gagal dimuat, cek koneksi internet.');
+      return;
+    }
+    if (!currentDailyRows.length) {
+      showToast('❌ Tidak ada data untuk diunduh. Terapkan filter terlebih dahulu.');
+      return;
+    }
+
+    updatePeriodText();
+
+    const btn         = document.querySelector('.btn-pdf');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyiapkan PDF...';
+    showToast('📄 Laporan PDF sedang disiapkan...');
+
+    const exportArea = document.getElementById('reportExportArea');
+    const pdfHeader  = document.getElementById('pdfHeader');
+    pdfHeader.style.display = 'block';
+
+    const opt = {
+      margin:      [10, 10, 10, 10],
+      filename:    `Laporan-KembangTuri-${document.getElementById('dateFrom').value}_${document.getElementById('dateTo').value}.pdf`,
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(exportArea).save()
+      .then(() => showToast('✅ Laporan berhasil diunduh!'))
+      .catch(err => {
+        console.error('[Laporan] Gagal membuat PDF:', err);
+        showToast('❌ Gagal membuat PDF: ' + err.message);
+      })
+      .finally(() => {
+        pdfHeader.style.display = 'none';
+        btn.disabled  = false;
+        btn.innerHTML = originalHtml;
+      });
+  }
+
+  /* ── 14. Init ── */
+  updatePeriodText();
+  loadReportData();
 </script>
+<!-- Firebase Modular SDK v12 (module script, exposes window.FB bridge) -->
+<script type="module" src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
 </body>
 </html>

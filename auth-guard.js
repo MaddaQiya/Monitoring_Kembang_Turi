@@ -8,9 +8,10 @@
 
      <script src="auth-guard.js"></script>
 
-   Untuk index.html (halaman login), tambahkan di dalam fungsi
-   handleLogin() sebelum redirect:
-     AuthGuard.login(username, roleValue);  // roleValue dari dropdown/Firebase
+   Untuk index.html (halaman login), panggil setelah Firebase Auth
+   berhasil dan role sudah didapat dari Realtime Database:
+     AuthGuard.login(nama, role);  // role dari /users/{uid}/role
+     window.location.replace(AuthGuard.ROLES[role].defaultPage);
 
    ================================================================ */
 
@@ -19,30 +20,32 @@ const AuthGuard = (() => {
   /* ──────────────────────────────────────────────────────────────
      1. ROLE DEFINITIONS
      Tentukan: halaman yang boleh diakses & landing page default
+     Role keys HARUS sama persis dengan value `role` yang disimpan
+     di Firebase Realtime Database (/users/{uid}/role).
   ────────────────────────────────────────────────────────────── */
   const ROLES = {
-    'Admin IT': {
+    'admin': {
       allowedPages: ['status.html', 'akun.html'],
       defaultPage:  'status.html',
       label:        'Admin IT',
       avatarInitial:'A',
       avatarColor:  '#ea580c',   // orange
     },
-    'Manajer': {
-      allowedPages: ['dashboard.html', 'laporan.html', 'parameter.html'],
+    'manajer': {
+      allowedPages: ['dashboard.html', 'laporan.html', 'parameter.html', 'status.html'],
       defaultPage:  'dashboard.html',
       label:        'Manajer',
       avatarInitial:'M',
       avatarColor:  '#2563eb',   // blue
     },
-    'Asisten Kebun': {
+    'asisten': {
       allowedPages: ['dashboard.html', 'laporan.html', 'parameter.html'],
       defaultPage:  'dashboard.html',
       label:        'Asisten Kebun',
       avatarInitial:'A',
       avatarColor:  '#16a34a',   // green
     },
-    'Pekerja Lahan': {
+    'pekerja': {
       allowedPages: ['dashboard.html'],
       defaultPage:  'dashboard.html',
       label:        'Pekerja Lahan',
@@ -54,14 +57,15 @@ const AuthGuard = (() => {
   /* ──────────────────────────────────────────────────────────────
      2. MENU CONFIG
      Mapping: href filename → role keys yang BOLEH melihat menu ini
+     (diturunkan otomatis dari ROLES.allowedPages, supaya selalu sinkron)
   ────────────────────────────────────────────────────────────── */
-  const MENU_ACCESS = {
-    'dashboard.html': ['Manajer', 'Asisten Kebun', 'Pekerja Lahan'],
-    'laporan.html':   ['Manajer', 'Asisten Kebun'],
-    'parameter.html': ['Manajer', 'Asisten Kebun'],
-    'status.html':    ['Admin IT'],
-    'akun.html':      ['Admin IT'],
-  };
+  const MENU_ACCESS = {};
+  Object.entries(ROLES).forEach(([roleKey, cfg]) => {
+    cfg.allowedPages.forEach(page => {
+      if (!MENU_ACCESS[page]) MENU_ACCESS[page] = [];
+      MENU_ACCESS[page].push(roleKey);
+    });
+  });
 
   /* ──────────────────────────────────────────────────────────────
      3. SESSION HELPERS
@@ -223,7 +227,8 @@ const AuthGuard = (() => {
   }
 
   /* ──────────────────────────────────────────────────────────────
-     8. LOGIN — Call this from index.html after credential check
+     8. LOGIN — Call this from index.html after Firebase Auth +
+     role lookup berhasil
   ────────────────────────────────────────────────────────────── */
   function login(nama, role) {
     if (!ROLES[role]) {
@@ -239,6 +244,10 @@ const AuthGuard = (() => {
   ────────────────────────────────────────────────────────────── */
   function logout() {
     clearSession();
+    // Sign out dari Firebase Auth juga, jika bridge tersedia
+    if (window.FB && typeof window.FB.signOutUser === 'function') {
+      window.FB.signOutUser().catch(() => {});
+    }
     window.location.replace('index.html');
   }
 

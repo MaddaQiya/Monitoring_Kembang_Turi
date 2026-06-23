@@ -26,128 +26,72 @@
     /* ═══════════════════════════════════════
        APP SHELL — The core responsive layout
     ═══════════════════════════════════════ */
-    .app-shell{
-      display:flex;
-      flex-direction:column;
-      min-height:100vh;
-    }
-
-    /* On md+ → row layout with sidebar */
-    @media(min-width:768px){
-      .app-shell{flex-direction:row;}
-    }
+    .app-shell{display:flex;flex-direction:column;min-height:100vh;}
+    @media(min-width:768px){.app-shell{flex-direction:row;}}
 
     /* ─── SIDEBAR (hidden on mobile, shown on md+) ─── */
     .sidebar{
-      display:none; /* hidden mobile */
-      width:var(--sidebar-w);
-      background:#fff;
-      border-right:1px solid var(--gr200);
-      flex-direction:column;
-      position:sticky;
-      top:0;
-      height:100vh;
-      overflow-y:auto;
-      flex-shrink:0;
-      z-index:200;
+      display:none;
+      width:var(--sidebar-w);background:#fff;border-right:1px solid var(--gr200);
+      flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;
+      flex-shrink:0;z-index:200;
     }
-    @media(min-width:768px){
-      .sidebar{display:flex;}
-    }
+    @media(min-width:768px){.sidebar{display:flex;}}
 
-    .sb-brand{
-      display:flex;align-items:center;gap:10px;
-      padding:20px 20px 16px;
-      border-bottom:1px solid var(--gr100);
-      text-decoration:none;
-    }
-    .sb-brand-icon{
-      width:36px;height:36px;background:var(--g100);border-radius:10px;
-      display:flex;align-items:center;justify-content:center;
-      color:var(--g700);font-size:17px;flex-shrink:0;
-    }
+    .sb-brand{display:flex;align-items:center;gap:10px;padding:20px 20px 16px;border-bottom:1px solid var(--gr100);text-decoration:none;}
+    .sb-brand-icon{width:36px;height:36px;background:var(--g100);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--g700);font-size:17px;flex-shrink:0;}
     .sb-brand-name{font-size:15px;font-weight:800;color:var(--g700);}
     .sb-brand-sub{font-size:10.5px;color:var(--gr400);font-weight:500;}
 
-    /* Role switcher */
     .sb-role-section{padding:14px 16px;border-bottom:1px solid var(--gr100);}
     .sb-role-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gr400);margin-bottom:6px;}
     .sb-role-select{
       width:100%;padding:8px 10px;border:1.5px solid var(--gr200);border-radius:9px;
       font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
-      color:var(--gr800);background:var(--gr50);outline:none;cursor:pointer;
-      transition:border-color .2s;
+      color:var(--gr800);background:var(--gr50);outline:none;cursor:pointer;transition:border-color .2s;
     }
     .sb-role-select:focus{border-color:var(--g500);}
 
-    /* Nav links */
     .sb-nav{flex:1;padding:14px 12px;}
     .sb-nav-group-label{
       font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
       color:var(--gr400);padding:0 8px;margin-bottom:6px;margin-top:14px;
     }
     .sb-nav-group-label:first-child{margin-top:0;}
-
     .sb-link{
-      display:flex;align-items:center;gap:10px;
-      padding:10px 10px;border-radius:10px;
-      font-size:13.5px;font-weight:600;color:var(--gr600);
-      text-decoration:none;transition:background .15s,color .15s;
-      margin-bottom:2px;
+      display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;
+      font-size:13.5px;font-weight:600;color:var(--gr600);text-decoration:none;
+      transition:background .15s,color .15s;margin-bottom:2px;
     }
     .sb-link i{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
     .sb-link:hover{background:var(--gr100);color:var(--gr900);}
     .sb-link.active{background:var(--g50);color:var(--g700);font-weight:700;}
     .sb-link.active i{color:var(--g600);}
 
-    .sb-footer{
-      padding:16px;border-top:1px solid var(--gr100);
-    }
+    .sb-footer{padding:16px;border-top:1px solid var(--gr100);}
     .sb-logout{
-      display:flex;align-items:center;gap:9px;
-      padding:9px 10px;border-radius:10px;
-      font-size:13.5px;font-weight:600;color:var(--gr500);
-      text-decoration:none;cursor:pointer;transition:all .15s;
+      display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;
+      font-size:13.5px;font-weight:600;color:var(--gr500);cursor:pointer;transition:all .15s;
       background:none;border:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;
     }
     .sb-logout:hover{background:var(--r50);color:var(--r600);}
     .sb-logout i{font-size:14px;}
 
-    /* ─── MAIN WRAP (fills remaining width) ─── */
-    .main-wrap{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      min-width:0;
-      padding-bottom:var(--nav-h); /* space for bottom nav on mobile */
-    }
-    @media(min-width:768px){
-      .main-wrap{padding-bottom:0;} /* no bottom nav on desktop */
-    }
+    /* ─── MAIN WRAP ─── */
+    .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;padding-bottom:var(--nav-h);}
+    @media(min-width:768px){.main-wrap{padding-bottom:0;}}
 
     /* ─── TOP BAR ─── */
     .topbar{
       position:sticky;top:0;z-index:100;height:var(--topbar-h);
       background:#fff;border-bottom:1px solid var(--gr200);
       display:flex;align-items:center;justify-content:space-between;
-      padding:0 16px;
-      box-shadow:0 1px 4px rgba(0,0,0,.06);
-      flex-shrink:0;
+      padding:0 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0;
     }
-
-    /* Mobile: show brand in topbar */
-    .topbar-brand{
-      display:flex;align-items:center;gap:9px;
-      font-weight:800;font-size:15px;color:var(--g700);text-decoration:none;
-    }
+    .topbar-brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;color:var(--g700);text-decoration:none;}
     .topbar-brand i{font-size:18px;}
-    /* Hide topbar brand on desktop (sidebar has brand) */
     @media(min-width:768px){.topbar-brand{display:none;}}
-
-    .topbar-page-title{
-      display:none;
-      font-size:18px;font-weight:800;color:var(--gr900);
-    }
+    .topbar-page-title{display:none;font-size:18px;font-weight:800;color:var(--gr900);}
     @media(min-width:768px){.topbar-page-title{display:block;}}
 
     .topbar-right{display:flex;align-items:center;gap:10px;}
@@ -157,66 +101,36 @@
       cursor:pointer;color:var(--gr700);font-size:16px;transition:background .2s;
     }
     .notif-btn:hover{background:var(--gr200);}
-    .notif-badge{
-      position:absolute;top:6px;right:6px;width:8px;height:8px;
-      background:var(--r500);border-radius:50%;border:1.5px solid #fff;
-    }
+    .notif-badge{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--r500);border-radius:50%;border:1.5px solid #fff;}
     .profile-chip{
       display:flex;align-items:center;gap:8px;
       background:var(--gr100);border-radius:50px;padding:5px 12px 5px 5px;
       cursor:pointer;transition:background .2s;
     }
     .profile-chip:hover{background:var(--gr200);}
-    .avatar{
-      width:30px;height:30px;background:var(--g600);border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      color:#fff;font-weight:800;font-size:13px;
-    }
+    .avatar{width:30px;height:30px;background:var(--g600);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;}
     .profile-info{display:none;}
-    @media(min-width:640px){
-      .profile-info{display:flex;flex-direction:column;line-height:1.2;}
-      .profile-info .pname{font-size:13px;font-weight:700;color:var(--gr900);}
-      .profile-info .prole{font-size:11px;color:var(--g600);font-weight:600;}
-    }
+    @media(min-width:640px){.profile-info{display:flex;flex-direction:column;line-height:1.2;}}
+    .profile-info .pname{font-size:13px;font-weight:700;color:var(--gr900);}
+    .profile-info .prole{font-size:11px;color:var(--g600);font-weight:600;}
 
     /* ─── PAGE CONTENT ─── */
-    .page-content{
-      padding:16px;
-      flex:1;
-    }
-    @media(min-width:768px){padding:24px;}
-    @media(min-width:1024px){
-      .page-content{padding:28px 32px;}
-    }
+    .page-content{padding:16px;flex:1;}
+    @media(min-width:1024px){.page-content{padding:28px 32px;}}
 
     .page-title{font-size:14px;font-weight:600;color:var(--gr500);margin-bottom:2px;}
     .page-greeting{font-size:20px;font-weight:800;color:var(--gr900);margin-bottom:18px;}
-    @media(min-width:768px){
-      .page-title{display:none;}
-      .page-greeting{font-size:22px;margin-bottom:22px;}
-    }
+    @media(min-width:768px){.page-title{display:none;}.page-greeting{font-size:22px;margin-bottom:22px;}}
 
     /* ─── SENSOR CARDS GRID ─── */
-    .sensor-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr; /* 2 cols on mobile */
-      gap:12px;
-      margin-bottom:14px;
-    }
-    @media(min-width:640px){
-      .sensor-grid{grid-template-columns:repeat(2,1fr);gap:14px;}
-    }
-    @media(min-width:1024px){
-      .sensor-grid{grid-template-columns:repeat(2,1fr);gap:18px;} /* Keep 2 cols, bigger cards */
-    }
-    @media(min-width:1280px){
-      .sensor-grid{grid-template-columns:repeat(4,1fr);} /* 4 cols on XL */
-    }
+    /* Hanya 2 kartu (Suhu & pH) — selalu 2 kolom, max-width supaya proporsional di layar lebar */
+    .sensor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;max-width:860px;}
+    @media(min-width:640px){.sensor-grid{gap:14px;}}
+    @media(min-width:1024px){.sensor-grid{gap:20px;}}
 
     .sensor-card{
       background:#fff;border-radius:16px;padding:16px 14px;
-      border:1.5px solid var(--gr200);
-      box-shadow:0 2px 8px rgba(0,0,0,.05);
+      border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.05);
       transition:border-color .3s,box-shadow .3s,background .3s;
       position:relative;overflow:hidden;
     }
@@ -228,19 +142,12 @@
     .sensor-card.critical::before{background:var(--r500);}
     .sensor-card.warning{background:var(--y50);border-color:var(--y500);}
     .sensor-card.warning::before{background:var(--y500);}
-
-    @media(min-width:768px){
-      .sensor-card{padding:20px 18px;border-radius:18px;}
-    }
+    @media(min-width:768px){.sensor-card{padding:20px 18px;border-radius:18px;}}
 
     .card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
     .card-lbl{font-size:10px;font-weight:700;letter-spacing:.7px;color:var(--gr500);text-transform:uppercase;}
     @media(min-width:768px){.card-lbl{font-size:11px;}}
-
-    .card-ico{
-      width:34px;height:34px;border-radius:9px;
-      display:flex;align-items:center;justify-content:center;font-size:15px;
-    }
+    .card-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;}
     @media(min-width:768px){.card-ico{width:38px;height:38px;font-size:17px;}}
     .ico-green{background:var(--g100);color:var(--g600);}
     .ico-blue{background:var(--b50);color:var(--b600);}
@@ -248,8 +155,7 @@
 
     .sensor-val{
       font-size:34px;font-weight:800;color:var(--gr900);
-      letter-spacing:-1.5px;line-height:1;margin-bottom:6px;
-      transition:color .3s;
+      letter-spacing:-1.5px;line-height:1;margin-bottom:6px;transition:color .3s;
     }
     @media(min-width:768px){.sensor-val{font-size:44px;}}
     @media(min-width:1024px){.sensor-val{font-size:48px;}}
@@ -265,10 +171,11 @@
       padding:8px 12px;background:#fff;border-radius:10px;
       border:1px solid var(--gr200);margin-bottom:14px;
     }
-    @media(min-width:768px){padding:10px 16px;margin-bottom:18px;border-radius:12px;}
+    @media(min-width:768px){.live-row{padding:10px 16px;margin-bottom:18px;border-radius:12px;}}
     .live-ind{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gr500);font-weight:500;}
     .live-dot{width:8px;height:8px;background:var(--g500);border-radius:50%;animation:blink 1.2s ease-in-out infinite;}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    .live-dot.offline{background:var(--gr400);animation:none;}
     .live-badge{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--g700);}
 
     /* ─── CHART ─── */
@@ -276,9 +183,7 @@
       background:#fff;border-radius:16px;padding:18px 14px 14px;
       border:1.5px solid var(--gr200);box-shadow:0 2px 8px rgba(0,0,0,.05);
     }
-    @media(min-width:768px){
-      .chart-card{border-radius:18px;padding:22px 20px 18px;}
-    }
+    @media(min-width:768px){.chart-card{border-radius:18px;padding:22px 20px 18px;}}
     .chart-title{font-size:14px;font-weight:700;color:var(--gr900);margin-bottom:3px;}
     @media(min-width:768px){.chart-title{font-size:16px;}}
     .chart-sub{font-size:11.5px;color:var(--gr400);margin-bottom:12px;}
@@ -296,9 +201,7 @@
       display:flex;align-items:center;justify-content:space-around;
       z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.08);
     }
-    /* Hide on desktop — sidebar takes over */
     @media(min-width:768px){.bottom-nav{display:none;}}
-
     .nav-item{
       flex:1;display:flex;flex-direction:column;align-items:center;
       justify-content:center;gap:4px;text-decoration:none;
@@ -341,34 +244,14 @@
       </div>
     </a>
 
-    <div class="sb-role-section">
-      <div class="sb-role-label">Ubah Role (Simulasi)</div>
-      <select class="sb-role-select" id="roleSelect" onchange="changeRole(this.value)">
-        <option value="manajer">Manajer</option>
-        <option value="asisten" selected>Asisten Kebun</option>
-        <option value="pekerja">Pekerja Lahan</option>
-        <option value="admin">Admin IT</option>
-      </select>
-    </div>
-
     <nav class="sb-nav">
       <div class="sb-nav-group-label">Menu Utama</div>
-      <a href="dashboard.html" class="sb-link active">
-        <i class="fa-solid fa-house"></i> Dashboard
-      </a>
-      <a href="laporan.html" class="sb-link">
-        <i class="fa-regular fa-file-lines"></i> Laporan Historis
-      </a>
-      <a href="parameter.html" class="sb-link">
-        <i class="fa-solid fa-sliders"></i> Ambang Batas
-      </a>
+      <a href="dashboard.html" class="sb-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="laporan.html"   class="sb-link"><i class="fa-regular fa-file-lines"></i> Laporan Historis</a>
+      <a href="parameter.html" class="sb-link"><i class="fa-solid fa-sliders"></i> Ambang Batas</a>
       <div class="sb-nav-group-label">Sistem</div>
-      <a href="status.html" class="sb-link">
-        <i class="fa-solid fa-wave-square"></i> Status Sistem
-      </a>
-      <a href="akun.html" class="sb-link">
-        <i class="fa-solid fa-users"></i> Manajemen Akun
-      </a>
+      <a href="status.html"    class="sb-link"><i class="fa-solid fa-wave-square"></i> Status Sistem</a>
+      <a href="akun.html"      class="sb-link"><i class="fa-solid fa-users"></i> Manajemen Akun</a>
     </nav>
 
     <div class="sb-footer">
@@ -388,9 +271,9 @@
       </a>
       <span class="topbar-page-title">Dashboard</span>
       <div class="topbar-right">
-        <button class="notif-btn" onclick="showToast('📋 Anda punya notifikasi baru','green')" title="Notifikasi">
+        <button class="notif-btn" id="notifBtn" title="Notifikasi">
           <i class="fa-regular fa-bell"></i>
-          <span class="notif-badge" id="notifBadge"></span>
+          <span class="notif-badge" id="notifBadge" style="display:none"></span>
         </button>
         <div class="profile-chip">
           <div class="avatar" id="avatarEl">A</div>
@@ -420,9 +303,9 @@
             <span class="card-lbl"><i class="fa-solid fa-temperature-half" style="margin-right:4px"></i>Suhu Udara</span>
             <div class="card-ico ico-green" id="suhuIcoWrap"><i class="fa-solid fa-temperature-half"></i></div>
           </div>
-          <div class="sensor-val" id="suhuVal">28.5<span class="unit">°C</span></div>
+          <div class="sensor-val" id="suhuVal">--<span class="unit">°C</span></div>
           <div class="sensor-status st-ok" id="suhuSt">
-            <i class="fa-solid fa-circle-check"></i><span>Optimal</span>
+            <i class="fa-solid fa-circle-notch fa-spin"></i><span>Menghubungkan…</span>
           </div>
         </div>
 
@@ -431,41 +314,20 @@
             <span class="card-lbl"><i class="fa-solid fa-droplet" style="margin-right:4px"></i>Nutrisi (pH)</span>
             <div class="card-ico ico-blue" id="phIcoWrap"><i class="fa-solid fa-droplet"></i></div>
           </div>
-          <div class="sensor-val" id="phVal">6.0<span class="unit"> pH</span></div>
+          <div class="sensor-val" id="phVal">--<span class="unit"> pH</span></div>
           <div class="sensor-status st-ok" id="phSt">
-            <i class="fa-solid fa-circle-check"></i><span>Stabil</span>
+            <i class="fa-solid fa-circle-notch fa-spin"></i><span>Menghubungkan…</span>
           </div>
         </div>
 
-        <!-- Extra stat cards (shown on XL as grid of 4) -->
-        <div class="sensor-card" id="humCard">
-          <div class="card-hdr">
-            <span class="card-lbl"><i class="fa-solid fa-wind" style="margin-right:4px"></i>Kelembaban</span>
-            <div class="card-ico ico-blue"><i class="fa-solid fa-droplet-percent"></i></div>
-          </div>
-          <div class="sensor-val" id="humVal">72<span class="unit">%</span></div>
-          <div class="sensor-status st-ok" id="humSt">
-            <i class="fa-solid fa-circle-check"></i><span>Normal</span>
-          </div>
-        </div>
-
-        <div class="sensor-card" id="lightCard">
-          <div class="card-hdr">
-            <span class="card-lbl"><i class="fa-solid fa-sun" style="margin-right:4px"></i>Intensitas Cahaya</span>
-            <div class="card-ico ico-green"><i class="fa-solid fa-sun"></i></div>
-          </div>
-          <div class="sensor-val" id="lightVal">18.4<span class="unit"> klx</span></div>
-          <div class="sensor-status st-ok">
-            <i class="fa-solid fa-circle-check"></i><span>Ideal</span>
-          </div>
-        </div>
+        <!-- hanya 2 kartu aktif: Suhu & pH -->
       </div>
 
       <!-- LIVE ROW -->
       <div class="live-row">
         <div class="live-ind">
-          <div class="live-dot"></div>
-          <span>Update terakhir: <strong id="lastUpdate">--:--:--</strong></span>
+          <div class="live-dot" id="liveDot"></div>
+          <span>Update terakhir: <strong id="lastUpdate">Menghubungkan…</strong></span>
         </div>
         <div class="live-badge">
           <i class="fa-solid fa-wave-square" style="color:var(--g500)"></i> Sistem Live
@@ -474,8 +336,8 @@
 
       <!-- CHART -->
       <div class="chart-card">
-        <div class="chart-title">Grafik Monitoring 2 Jam Terakhir</div>
-        <div class="chart-sub">Tren suhu &amp; pH secara real-time</div>
+        <div class="chart-title">Grafik Monitoring Real-Time</div>
+        <div class="chart-sub" id="chartSub">Memuat data historis dari Firebase…</div>
         <div class="chart-legend">
           <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Suhu (°C)</div>
           <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>pH Nutrisi</div>
@@ -489,122 +351,293 @@
 <!-- BOTTOM NAV (mobile only) -->
 <nav class="bottom-nav">
   <a href="dashboard.html" class="nav-item active"><i class="fa-solid fa-house"></i>Beranda</a>
-  <a href="laporan.html" class="nav-item"><i class="fa-regular fa-file-lines"></i>Laporan</a>
+  <a href="laporan.html"   class="nav-item"><i class="fa-regular fa-file-lines"></i>Laporan</a>
   <a href="parameter.html" class="nav-item"><i class="fa-solid fa-sliders"></i>Parameter</a>
-  <a href="status.html" class="nav-item"><i class="fa-solid fa-wave-square"></i>Status</a>
-  <a href="akun.html" class="nav-item"><i class="fa-regular fa-circle-user"></i>Akun</a>
+  <a href="status.html"    class="nav-item"><i class="fa-solid fa-wave-square"></i>Status</a>
+  <a href="akun.html"      class="nav-item"><i class="fa-regular fa-circle-user"></i>Akun</a>
 </nav>
 
 <script>
-  /* ── Chart init ── */
-  const POINTS = 24;
-  let suhuData=[], phData=[], timeLabels=[];
-  const now0 = new Date();
-  for(let i=POINTS;i>=0;i--){
-    const t=new Date(now0.getTime()-i*5*60*1000);
-    timeLabels.push(`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`);
-    suhuData.push(+(26.5+Math.random()*3).toFixed(1));
-    phData.push(+(5.7+Math.random()*0.7).toFixed(2));
-  }
+  /* ═══════════════════════════════════════════════════════════════
+     CHART SETUP
+     Inisialisasi dengan data kosong — akan diisi dari Firebase.
+  ═══════════════════════════════════════════════════════════════ */
+  const MAX_POINTS = 20; // Maksimal titik data yang ditampilkan di grafik
 
-  const threshPlugin={
-    id:'thr',afterDraw(c){
-      const{ctx:x,chartArea:a,scales:s}=c;if(!a)return;
-      x.save();x.setLineDash([6,4]);
-      const y30=s.y.getPixelForValue(30);
-      x.strokeStyle='rgba(239,68,68,.5)';x.lineWidth=1.5;
-      x.beginPath();x.moveTo(a.left,y30);x.lineTo(a.right,y30);x.stroke();
-      const y65=s.y2.getPixelForValue(6.5);
-      x.strokeStyle='rgba(59,130,246,.4)';
-      x.beginPath();x.moveTo(a.left,y65);x.lineTo(a.right,y65);x.stroke();
-      const y55=s.y2.getPixelForValue(5.5);
-      x.strokeStyle='rgba(59,130,246,.3)';
-      x.beginPath();x.moveTo(a.left,y55);x.lineTo(a.right,y55);x.stroke();
+  const threshPlugin = {
+    id: 'thr',
+    afterDraw(c) {
+      const { ctx: x, chartArea: a, scales: s } = c;
+      if (!a) return;
+      // Baca threshold dari variabel dinamis agar garis ikut bergerak
+      const suhuMax = _currentThr.suhu_max;
+      const phMin   = _currentThr.ph_min;
+      const phMax   = _currentThr.ph_max;
+      x.save(); x.setLineDash([6, 4]);
+      // Garis batas suhu max (dinamis)
+      const y30 = s.y.getPixelForValue(suhuMax);
+      x.strokeStyle = 'rgba(239,68,68,.5)'; x.lineWidth = 1.5;
+      x.beginPath(); x.moveTo(a.left, y30); x.lineTo(a.right, y30); x.stroke();
+      // Garis batas pH atas (dinamis)
+      const y65 = s.y2.getPixelForValue(phMax);
+      x.strokeStyle = 'rgba(59,130,246,.4)';
+      x.beginPath(); x.moveTo(a.left, y65); x.lineTo(a.right, y65); x.stroke();
+      // Garis batas pH bawah (dinamis)
+      const y55 = s.y2.getPixelForValue(phMin);
+      x.strokeStyle = 'rgba(59,130,246,.3)';
+      x.beginPath(); x.moveTo(a.left, y55); x.lineTo(a.right, y55); x.stroke();
       x.restore();
     }
   };
 
-  const chart=new Chart(document.getElementById('monitorChart').getContext('2d'),{
-    type:'line',
-    data:{
-      labels:timeLabels,
-      datasets:[
-        {label:'Suhu (°C)',data:suhuData,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.08)',
-         borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.4,fill:true,yAxisID:'y'},
-        {label:'pH',data:phData,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.06)',
-         borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.4,yAxisID:'y2'}
+  const chart = new Chart(document.getElementById('monitorChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Suhu (°C)', data: [],
+          borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.08)',
+          borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
+          tension: .4, fill: true, yAxisID: 'y'
+        },
+        {
+          label: 'pH', data: [],
+          borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.06)',
+          borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
+          tension: .4, yAxisID: 'y2'
+        }
       ]
     },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(17,24,39,.9)',titleFont:{size:11},bodyFont:{size:12,weight:'bold'},padding:10,cornerRadius:8}},
-      scales:{
-        x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9ca3af',font:{size:10},maxTicksLimit:7,maxRotation:0}},
-        y:{position:'left',min:20,max:35,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#9ca3af',font:{size:10}}},
-        y2:{position:'right',min:4,max:8,grid:{display:false},ticks:{color:'#9ca3af',font:{size:10}}}
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(17,24,39,.9)',
+          titleFont: { size: 11 }, bodyFont: { size: 12, weight: 'bold' },
+          padding: 10, cornerRadius: 8
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.04)' }, ticks: { color: '#9ca3af', font: { size: 10 }, maxTicksLimit: 7, maxRotation: 0 } },
+        y: { position: 'left', min: 20, max: 35, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+        y2: { position: 'right', min: 4, max: 8, grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } }
       }
     },
-    plugins:[threshPlugin]
+    plugins: [threshPlugin]
   });
 
-  /* ── Live sensor simulation ── */
-  let pS=28.5,pP=6.0,critShown=false;
-  function update(){
-    pS=Math.max(24,Math.min(33,+(pS+(Math.random()-.45)*.7).toFixed(1)));
-    pP=Math.max(4.8,Math.min(7.5,+(pP+(Math.random()-.5)*.09).toFixed(2)));
+  /* ═══════════════════════════════════════════════════════════════
+     HELPER: format jam:menit dari Date object
+  ═══════════════════════════════════════════════════════════════ */
+  function toHHMM(date) {
+    return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+  }
 
-    document.getElementById('suhuVal').innerHTML=`${pS}<span class="unit">°C</span>`;
-    document.getElementById('phVal').innerHTML=`${pP}<span class="unit"> pH</span>`;
-    document.getElementById('humVal').innerHTML=`${Math.floor(68+Math.random()*10)}<span class="unit">%</span>`;
-
-    /* Suhu status */
-    const sc=document.getElementById('suhuCard'),sw=document.getElementById('suhuIcoWrap'),ss=document.getElementById('suhuSt');
-    if(pS>30){
-      sc.className='sensor-card critical'; sw.className='card-ico ico-red';
-      ss.className='sensor-status st-crit'; ss.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span>Kritis: Terlalu Panas!</span>';
-      if(!critShown){showToast('⚠️ Suhu melampaui 30°C!','red');document.getElementById('notifBadge').style.display='block';critShown=true;}
-    } else {
-      sc.className='sensor-card'; sw.className='card-ico ico-green';
-      ss.className='sensor-status st-ok'; ss.innerHTML='<i class="fa-solid fa-circle-check"></i><span>Optimal</span>';
-      critShown=false;
-    }
-
-    /* pH status */
-    const pc=document.getElementById('phCard'),pw=document.getElementById('phIcoWrap'),ps=document.getElementById('phSt');
-    if(pP<5.5||pP>6.5){
-      pc.className='sensor-card warning'; pw.className='card-ico ico-red';
-      ps.className='sensor-status st-warn'; ps.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span>Di Luar Batas!</span>';
-    } else {
-      pc.className='sensor-card'; pw.className='card-ico ico-blue';
-      ps.className='sensor-status st-ok'; ps.innerHTML='<i class="fa-solid fa-circle-check"></i><span>Stabil</span>';
-    }
-
-    const t=new Date();
-    document.getElementById('lastUpdate').textContent=t.toLocaleTimeString('id-ID');
-    const lbl=`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+  /* ═══════════════════════════════════════════════════════════════
+     HELPER: tambahkan satu titik ke chart (FIFO MAX_POINTS)
+  ═══════════════════════════════════════════════════════════════ */
+  function pushChartPoint(suhu, ph, timestamp) {
+    const lbl = toHHMM(new Date(timestamp));
     chart.data.labels.push(lbl);
-    chart.data.datasets[0].data.push(pS);
-    chart.data.datasets[1].data.push(pP);
-    if(chart.data.labels.length>POINTS+1){chart.data.labels.shift();chart.data.datasets[0].data.shift();chart.data.datasets[1].data.shift();}
-    chart.update('none');
-  }
-  document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('id-ID');
-  setInterval(update,3000);
-
-  function showToast(msg,type){
-    const t=document.getElementById('alertToast');
-    document.getElementById('toastMsg').textContent=msg;
-    t.className=`toast ${type}`;t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),3500);
+    chart.data.datasets[0].data.push(suhu);
+    chart.data.datasets[1].data.push(ph);
+    // Buang titik terlama jika sudah melebihi batas
+    if (chart.data.labels.length > MAX_POINTS) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+      chart.data.datasets[1].data.shift();
+    }
+    chart.update('none'); // 'none' = tanpa animasi agar tidak kedip saat update cepat
   }
 
-  function changeRole(v){
-    const map={manajer:{n:'Akun Manajer',i:'M'},asisten:{n:'Akun Asisten',i:'A'},pekerja:{n:'Akun Pekerja',i:'P'},admin:{n:'Akun Admin',i:'A'}};
-    const r=map[v]||map.asisten;
-    document.getElementById('profileName').textContent=r.n;
-    document.getElementById('avatarEl').textContent=r.i;
+  /* ═══════════════════════════════════════════════════════════════
+     UPDATE SENSOR CARDS dari data Firebase
+     Menggunakan threshold dinamis dari Firebase — bukan angka hardcode.
+     Variabel _currentThr diperbarui otomatis via listener onValue
+     setiap kali admin mengubah parameter dari parameter.html.
+  ═══════════════════════════════════════════════════════════════ */
+  let critSuhuShown = false;
+
+  // Threshold aktif — akan diisi dan diperbarui via Firebase listener
+  let _currentThr = { suhu_max: 30.0, ph_min: 5.5, ph_max: 6.5 };
+
+  function updateSensorCards(data) {
+    const suhu = typeof data.suhu === 'number' ? data.suhu : 0;
+    const ph   = typeof data.ph   === 'number' ? data.ph   : 0;
+
+    // Baca threshold dari variabel dinamis (bukan hardcode)
+    const suhu_max = _currentThr.suhu_max;
+    const ph_min   = _currentThr.ph_min;
+    const ph_max   = _currentThr.ph_max;
+
+    // ── Nilai ──
+    document.getElementById('suhuVal').innerHTML = `${suhu.toFixed(1)}<span class="unit">°C</span>`;
+    document.getElementById('phVal').innerHTML   = `${ph.toFixed(2)}<span class="unit"> pH</span>`;
+
+    // ── Update timestamp ──
+    const ts = data.timestamp ? new Date(data.timestamp) : new Date();
+    document.getElementById('lastUpdate').textContent = ts.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' });
+
+    // ── Live dot ON ──
+    document.getElementById('liveDot').classList.remove('offline');
+
+    // ── Suhu card status ──
+    const sc  = document.getElementById('suhuCard');
+    const siw = document.getElementById('suhuIcoWrap');
+    const ss  = document.getElementById('suhuSt');
+
+    if (suhu > suhu_max) {
+      sc.className  = 'sensor-card critical';
+      siw.className = 'card-ico ico-red';
+      ss.className  = 'sensor-status st-crit';
+      ss.innerHTML  = `<i class="fa-solid fa-triangle-exclamation"></i><span>Kritis: Suhu &gt; ${suhu_max}°C!</span>`;
+      if (!critSuhuShown) {
+        showToast(`⚠️ Suhu melampaui ${suhu_max}°C!`, 'red');
+        document.getElementById('notifBadge').style.display = 'block';
+        critSuhuShown = true;
+      }
+    } else {
+      sc.className  = 'sensor-card';
+      siw.className = 'card-ico ico-green';
+      ss.className  = 'sensor-status st-ok';
+      ss.innerHTML  = '<i class="fa-solid fa-circle-check"></i><span>Optimal</span>';
+      critSuhuShown = false;
+    }
+
+    // ── pH card status ──
+    const pc  = document.getElementById('phCard');
+    const piw = document.getElementById('phIcoWrap');
+    const ps  = document.getElementById('phSt');
+
+    if (ph < ph_min || ph > ph_max) {
+      pc.className  = 'sensor-card warning';
+      piw.className = 'card-ico ico-red';
+      ps.className  = 'sensor-status st-warn';
+      const arahPh  = ph < ph_min ? `&lt; ${ph_min}` : `&gt; ${ph_max}`;
+      ps.innerHTML  = `<i class="fa-solid fa-triangle-exclamation"></i><span>Di Luar Batas (${arahPh})!</span>`;
+    } else {
+      pc.className  = 'sensor-card';
+      piw.className = 'card-ico ico-blue';
+      ps.className  = 'sensor-status st-ok';
+      ps.innerHTML  = '<i class="fa-solid fa-circle-check"></i><span>Stabil</span>';
+    }
   }
+
+  /* ═══════════════════════════════════════════════════════════════
+     TOAST
+  ═══════════════════════════════════════════════════════════════ */
+  function showToast(msg, type) {
+    const t = document.getElementById('alertToast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = `toast ${type}`;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     TUNGGU WINDOW.FB SIAP
+  ═══════════════════════════════════════════════════════════════ */
+  function waitForFB(timeoutMs = 8000) {
+    return new Promise((resolve, reject) => {
+      if (window.FB) return resolve(window.FB);
+      const start = Date.now();
+      const iv = setInterval(() => {
+        if (window.FB)                           { clearInterval(iv); resolve(window.FB); }
+        else if (Date.now() - start > timeoutMs) { clearInterval(iv); reject(new Error('Firebase gagal dimuat')); }
+      }, 100);
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     INIT FIREBASE REALTIME DASHBOARD
+     1. Ambil 20 log historis terakhir → isi chart awal
+     2. subscribeLatestSensor → update kartu + chart saat ada data baru
+  ═══════════════════════════════════════════════════════════════ */
+  let unsubSensor = null; // simpan fungsi unsubscribe agar bisa dibersihkan bila perlu
+
+  async function initDashboard() {
+    try {
+      const FB = await waitForFB();
+
+      /* ── STEP 0: Aktifkan listener real-time untuk threshold ── */
+      // Setiap kali admin mengubah parameter dari parameter.html,
+      // _currentThr langsung diperbarui → updateSensorCards() otomatis
+      // pakai nilai terbaru pada pemanggilan berikutnya.
+      FB.subscribeThresholds(thr => {
+        _currentThr = thr;
+        console.log("[Dashboard] ↺ Threshold diperbarui:", _currentThr);
+      });
+
+      /* ── STEP 1: Load 20 data historis untuk mengisi chart ── */
+      const recent = await FB.getRecentLogs(MAX_POINTS);
+
+      if (recent && recent.length > 0) {
+        // recent sudah newest-first dari getRecentLogs, balik ke oldest-first untuk chart
+        const chronological = [...recent].reverse();
+        chronological.forEach(row => {
+          if (typeof row.suhu === 'number' && typeof row.ph === 'number') {
+            pushChartPoint(row.suhu, row.ph, row.timestamp || Date.now());
+          }
+        });
+
+        // Tampilkan data terbaru ke kartu sensor (index 0 = newest)
+        if (recent[0]) updateSensorCards(recent[0]);
+
+        document.getElementById('chartSub').textContent =
+          `Data real-time dari Firebase (${recent.length} titik historis dimuat)`;
+      } else {
+        document.getElementById('chartSub').textContent =
+          'Menunggu data pertama dari sensor…';
+      }
+
+      /* ── STEP 2: Subscribe real-time ke entry terbaru ── */
+      unsubSensor = FB.subscribeLatestSensor(latestData => {
+        if (!latestData || typeof latestData.suhu !== 'number') return;
+
+        // Update kartu sensor
+        updateSensorCards(latestData);
+
+        // Tambahkan ke chart (hanya jika timestamp berbeda dari titik terakhir)
+        const lastTs = chart.data.labels.length > 0
+          ? null // kita pakai cara sederhana: selalu push, chart handle FIFO
+          : null;
+
+        pushChartPoint(latestData.suhu, latestData.ph, latestData.timestamp || Date.now());
+      });
+
+      // Subscribe status koneksi Firebase
+      FB.subscribeConnectionState(connected => {
+        const dot = document.getElementById('liveDot');
+        if (connected) {
+          dot.classList.remove('offline');
+        } else {
+          dot.classList.add('offline');
+          document.getElementById('lastUpdate').textContent = 'Koneksi terputus…';
+        }
+      });
+
+    } catch (e) {
+      console.error('[Dashboard] Gagal inisialisasi Firebase:', e);
+      document.getElementById('lastUpdate').textContent = 'Gagal terhubung';
+      document.getElementById('liveDot').classList.add('offline');
+      document.getElementById('chartSub').textContent = 'Gagal memuat data: ' + e.message;
+      document.getElementById('suhuSt').innerHTML =
+        '<i class="fa-solid fa-circle-exclamation"></i><span>Gagal terhubung</span>';
+      document.getElementById('phSt').innerHTML =
+        '<i class="fa-solid fa-circle-exclamation"></i><span>Gagal terhubung</span>';
+      showToast('❌ Gagal terhubung ke Firebase', 'red');
+    }
+  }
+
+  // Jalankan setelah DOM siap
+  initDashboard();
 </script>
+
+<!-- Firebase Modular SDK v12 (module script, exposes window.FB bridge) -->
+<script type="module" src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
 </body>
 </html>
