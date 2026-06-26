@@ -11,6 +11,29 @@
      window.FB.writeSensorLog(suhu, ph)
      window.FB.getUsers()
      etc.
+
+   ARSITEKTUR ALERT (Pemisahan Tanggung Jawab):
+   ┌────────────────────────────────────────────────────────────────┐
+   │  simulator.html → startSimulator()                             │
+   │    └─ _doSimWrite() → push ke /log_sensor SAJA                │
+   │                       (TIDAK ada logika kirim WA di sini)     │
+   │                                                                │
+   │  dashboard.html → startAlertMonitor()                         │
+   │    └─ onValue /log_sensor → _evaluateAndSendAlert(data)       │
+   │         ├─ Guard A: skip data historis (timestamp)            │
+   │         ├─ Guard B: skip jika kondisi normal                  │
+   │         └─ Guard C: Global Cooldown via /system/last_wa_sent  │
+   │              ├─ get() → baca kapan WA terakhir dikirim        │
+   │              ├─ jika < 1 jam → log & return                   │
+   │              ├─ set() → KLAIM cooldown (sebelum fetch Fonnte) │
+   │              └─ sendWhatsAppAlert(pesan)                      │
+   └────────────────────────────────────────────────────────────────┘
+
+   Keuntungan Global Cooldown:
+   • 5 user buka dashboard bersamaan → tetap hanya 1 WA per jam
+   • Buka/tutup tab → tidak spam (timestamp guard)
+   • Simulator push data → AlertMonitor yang handle, bukan simulator
+   • Cooldown persist meski semua tab ditutup lalu dibuka lagi
 ============================================================ */
 
 import { initializeApp }                        from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
@@ -42,9 +65,6 @@ console.log("[Firebase] ✓ Connected to:", firebaseConfig.databaseURL);
 
 /* ============================================================
    HELPERS — AUTHENTICATION
-   (Dipakai oleh index.html untuk login. akun.html memakai
-   secondary app instance-nya sendiri untuk createUser, lihat
-   komentar di akun.html.)
 ============================================================ */
 
 /** Login dengan email & password. Return Firebase user object. */
@@ -119,33 +139,26 @@ async function getLogsByRange(fromMs, toMs) {
 }
 
 /**
- * Fetch ALL log_sensor entries with NO orderByChild/query — works even
- * without a ".indexOn": "timestamp" rule configured in Firebase.
- * Converts the Object-of-Objects (push IDs) shape into a plain Array,
- * sorted newest-first. Use this as a safe fallback when getLogsByRange()
- * throws an index-not-defined error.
+ * Fetch ALL log_sensor entries — fallback aman tanpa .indexOn rule.
+ * Returns array sorted newest-first.
  */
 async function getAllLogsRaw() {
   const snap = await get(ref(db, "log_sensor"));
   if (!snap.exists()) return [];
-  const val = snap.val();
-  // val is an Object keyed by push-id, e.g. { "-OuX1...": {suhu,ph,timestamp,status}, ... }
+  const val  = snap.val();
   const rows = Object.entries(val).map(([key, v]) => ({ key, ...v }));
-  rows.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); // newest first
+  rows.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   return rows;
 }
 
-/**
- * Client-side range filter — call after getAllLogsRaw() so range
- * queries work without any server-side index.
- */
+/** Client-side range filter setelah getAllLogsRaw() */
 function filterLogsByRange(rows, fromMs, toMs) {
   return rows.filter(r => typeof r.timestamp === "number" && r.timestamp >= fromMs && r.timestamp <= toMs);
 }
 
 /** Subscribe to latest sensor entry in real-time. Returns unsub function. */
 function subscribeLatestSensor(callback) {
-  const q = query(ref(db, "log_sensor"), orderByChild("timestamp"), limitToLast(1));
+  const q    = query(ref(db, "log_sensor"), orderByChild("timestamp"), limitToLast(1));
   const unsub = onValue(q, snap => {
     snap.forEach(c => callback({ key: c.key, ...c.val() }));
   });
@@ -154,7 +167,7 @@ function subscribeLatestSensor(callback) {
 
 /** Subscribe to new sensor entries (child_added). Returns unsub function. */
 function subscribeNewSensor(callback) {
-  const q = query(ref(db, "log_sensor"), orderByChild("timestamp"), limitToLast(1));
+  const q    = query(ref(db, "log_sensor"), orderByChild("timestamp"), limitToLast(1));
   const unsub = onChildAdded(q, snap => {
     callback({ key: snap.key, ...snap.val() });
   });
@@ -170,11 +183,47 @@ function subscribeConnectionState(callback) {
    HELPERS — USERS
 ============================================================ */
 
-/** Get all users once */
+/**
+ * Get all users dari /users.
+ * Menangani dua kemungkinan struktur key:
+ *   - Auth UID  (akun.html baru: set ref "users/{uid}")
+ *   - Push ID   (addUser() lama: push ke "users")
+ * Field no_hp dinormalisasi ke string meski tersimpan sebagai number.
+ */
 async function getUsers() {
+  console.log("[getUsers] Mengambil /users dari Firebase...");
   const snap = await get(ref(db, "users"));
+
+  if (!snap.exists()) {
+    console.warn("[getUsers] Node /users tidak ditemukan atau kosong.");
+    return [];
+  }
+
   const list = [];
-  if (snap.exists()) snap.forEach(c => list.push({ key: c.key, ...c.val() }));
+  snap.forEach(child => {
+    const val = child.val();
+    if (!val || typeof val !== "object") return;
+
+    let rawHp = val.no_hp;
+    if (rawHp === undefined || rawHp === null) rawHp = "";
+    rawHp = String(rawHp).trim();
+
+    list.push({
+      key:       child.key,
+      uid:       child.key,
+      username:  val.username  || "",
+      email:     val.email     || "",
+      nama:      val.nama      || val.username || val.email || child.key,
+      role:      val.role      || "",
+      no_hp:     rawHp,
+      active:    val.active    !== undefined ? val.active : true,
+      createdAt: val.createdAt || 0,
+    });
+  });
+
+  console.log(`[getUsers] ✓ ${list.length} user ditemukan:`, list.map(u => ({
+    key: u.key, nama: u.nama, role: u.role, no_hp: u.no_hp
+  })));
   return list;
 }
 
@@ -229,8 +278,6 @@ async function saveThresholds(data) {
 
 /**
  * Subscribe real-time ke perubahan thresholds di Firebase.
- * Callback dipanggil segera dengan nilai saat ini, dan setiap
- * kali admin menyimpan perubahan parameter dari parameter.html.
  * Returns unsub function.
  */
 function subscribeThresholds(callback) {
@@ -241,38 +288,23 @@ function subscribeThresholds(callback) {
 
 /* ============================================================
    HELPERS — WHATSAPP ALERT (Fonnte Gateway)
+
+   Fungsi ini MURNI mengirim pesan ke Fonnte.
+   TIDAK ada logika cooldown, threshold, atau evaluasi di sini.
+   Semua keputusan "kapan kirim" ada di _evaluateAndSendAlert().
+
+   ⚠️ Catatan keamanan: token terekspos di client-side.
+   Untuk produksi, pindahkan ke backend / Cloud Function.
+   Untuk skala proyek kuliah ini, pendekatan ini sudah cukup.
 ============================================================ */
 
-/* ────────────────────────────────────────────────────────────
-   PETUNJUK: Ganti nilai di bawah ini dengan API Token Fonnte
-   kamu sendiri. Dapatkan token dari dashboard Fonnte:
-   https://md.fonnte.com/  →  menu "Device" → salin "Token".
-
-   ⚠️ Catatan keamanan: token ini akan terlihat oleh siapa saja
-   yang membuka DevTools / view-source di browser, karena kode
-   ini berjalan di client-side. Untuk produksi, sebaiknya
-   panggilan ke Fonnte dipindah ke backend/Cloud Function agar
-   token tidak terekspos publik. Untuk skala tugas/proyek kuliah
-   ini, pendekatan client-side berikut sudah cukup.
-──────────────────────────────────────────────────────────── */
 const FONNTE_API_TOKEN = "1dPHojRFzmqKuBhgV3oY"; // ← ISI TOKEN DI SINI
 const FONNTE_ENDPOINT  = "https://api.fonnte.com/send";
 
-/* ── Daftar role yang berhak menerima notifikasi WhatsApp ──
-   Pencocokan dilakukan secara case-insensitive di dalam sendWhatsAppAlert()
-   agar tidak gagal karena perbedaan kapitalisasi ("Asisten" vs "asisten"). */
-const WA_TARGET_ROLES_NORMALIZED = new Set([
-  "pekerja lahan",
-  "pekerja",
-  "asisten kebun",
-  "asisten",
-]);
-
 /**
- * Kirim pesan WhatsApp peringatan ke semua user dengan role yang sesuai
- * dan memiliki no_hp tersimpan di /users/{uid}.
+ * Kirim pesan WhatsApp ke semua user pekerja/asisten yang punya no_hp.
  *
- * @param {string} pesan  Isi pesan peringatan yang akan dikirim.
+ * @param {string} pesan  Isi pesan peringatan.
  * @returns {Promise<{sent:number, targets:string[]}>}
  */
 async function sendWhatsAppAlert(pesan) {
@@ -280,15 +312,12 @@ async function sendWhatsAppAlert(pesan) {
   console.log("[WA] 🚀 sendWhatsAppAlert() dipanggil");
   console.log("[WA] Isi pesan:", pesan);
 
-  // ── Guard: token belum diisi ──
   if (!FONNTE_API_TOKEN || FONNTE_API_TOKEN === "GANTI_DENGAN_TOKEN_FONNTE_ANDA") {
     console.warn("[WA] ⚠ FONNTE_API_TOKEN belum diisi — alert tidak dikirim.");
     return { sent: 0, targets: [] };
   }
   console.log("[WA] ✓ Token Fonnte:", FONNTE_API_TOKEN.slice(0, 4) + "****");
 
-  // ── 1. Ambil data user ──
-  console.log("[WA] Mengambil data user dari Firebase /users ...");
   let users = [];
   try {
     users = await getUsers();
@@ -296,52 +325,42 @@ async function sendWhatsAppAlert(pesan) {
     console.error("[WA] ❌ Gagal mengambil data user:", e.message);
     throw e;
   }
-  console.log(`[WA] Total user di database: ${users.length}`, users);
+  console.log(`[WA] Total user di database: ${users.length}`);
 
-  // ── 2. Filter role & no_hp ──
-  console.log("[WA] Memulai filter role & no_hp ...");
+  if (users.length === 0) {
+    console.warn("[WA] ⚠ Tidak ada user ditemukan di /users.");
+    return { sent: 0, targets: [] };
+  }
+
   const filtered = users.filter(u => {
     const roleNorm = (u.role || "").trim().toLowerCase();
     const roleOk   = roleNorm.includes("pekerja") || roleNorm.includes("asisten");
-    const hpRaw    = typeof u.no_hp === "string" ? u.no_hp : "";
-    const hpOk     = hpRaw.trim().length >= 10;
-
+    const hpRaw    = u.no_hp || "";
+    const hpOk     = hpRaw.replace(/[\s\-\+]/g, "").length >= 9;
     console.log(
       `[WA] User: "${u.nama}" | role="${u.role}" → norm="${roleNorm}" → roleOk=${roleOk} | ` +
-      `no_hp="${hpRaw}" → hpOk=${hpOk}`
+      `no_hp="${hpRaw}" → hpOk=${hpOk} | active=${u.active}`
     );
     return roleOk && hpOk;
   });
 
   console.log(`[WA] User lolos filter: ${filtered.length}`, filtered.map(u => ({ nama: u.nama, role: u.role, no_hp: u.no_hp })));
 
-  // ── 3. Sanitasi nomor HP ──
   const targets = filtered.map(u => {
-    let hp = u.no_hp
-      .replace(/\s/g, "")   // hapus semua spasi
-      .replace(/-/g, "")    // hapus strip
-      .replace(/\+/g, "");  // hapus tanda plus
-
-    if (hp.startsWith("0")) {
-      hp = "62" + hp.slice(1); // "0812..." → "62812..."
-    }
-
+    let hp = u.no_hp.replace(/\s/g, "").replace(/-/g, "").replace(/\+/g, "");
+    if (hp.startsWith("0")) hp = "62" + hp.slice(1);
     console.log(`[WA] Sanitasi no_hp: "${u.no_hp}" → "${hp}"`);
     return hp;
   });
 
-  // ── 4. Guard: tidak ada target ──
   if (targets.length === 0) {
-    console.error("[Fonnte] Batal kirim: Tidak ada nomor HP pekerja/asisten yang valid di database!");
+    console.error("[Fonnte] Batal kirim: tidak ada nomor HP pekerja/asisten yang valid!");
     return { sent: 0, targets: [] };
   }
 
   const targetString = targets.join(",");
   console.log(`[WA] Target final (${targets.length} nomor): ${targetString}`);
 
-  // ── 5. Kirim ke Fonnte via FormData ──
-  // PENTING: JANGAN set Content-Type manual — biarkan browser isi otomatis
-  // sebagai multipart/form-data dengan boundary yang benar.
   const formData = new FormData();
   formData.append("target",  targetString);
   formData.append("message", pesan);
@@ -350,19 +369,15 @@ async function sendWhatsAppAlert(pesan) {
   try {
     const response = await fetch(FONNTE_ENDPOINT, {
       method:  "POST",
-      headers: { "Authorization": FONNTE_API_TOKEN }, // ← HANYA ini, tanpa Content-Type
+      headers: { "Authorization": FONNTE_API_TOKEN },
       body:    formData,
     });
-
     console.log("[WA] HTTP Status:", response.status, response.statusText);
-
     const res = await response.json();
     console.log("[Fonnte Success]:", res);
-
     console.log(`[WA] ✓ Selesai — pesan terkirim ke ${targets.length} penerima.`);
     console.log("[WA] ══════════════════════════════════════");
     return { sent: targets.length, targets };
-
   } catch (error) {
     console.error("[Fonnte Catch Error]:", error);
     throw error;
@@ -426,21 +441,25 @@ function formatDateTime(ms) {
 }
 
 /* ============================================================
-   SIMULATOR  (writes fake data to Firebase every N ms)
-============================================================ */
-let _simTimer   = null;
-let _simSuhu    = 28.5;
-let _simPh      = 6.0;
-let _simThr     = { ...DEFAULT_THRESHOLDS };
-let _thrUnsub   = null; // listener unsubscribe handle
+   SIMULATOR  —  Hanya menulis data sensor ke Firebase.
+                 TIDAK ADA logika kirim WA di sini.
 
-/**
- * Aktifkan listener real-time pada node /thresholds.
- * Setiap kali admin mengubah parameter dari parameter.html,
- * _simThr langsung diperbarui tanpa perlu restart simulator.
- */
+   Tanggung jawab simulator = push angka ke /log_sensor.
+   Tanggung jawab AlertMonitor = evaluasi angka itu & kirim WA.
+
+   Dengan pemisahan ini:
+   • simulator.html bisa dibuka kapan saja tanpa risiko spam WA.
+   • Tidak ada cooldown ganda / konflik antar komponen.
+============================================================ */
+
+let _simTimer = null;
+let _simSuhu  = 28.5;
+let _simPh    = 6.0;
+let _simThr   = { ...DEFAULT_THRESHOLDS };
+let _thrUnsub = null;
+
 function _startThresholdListener() {
-  if (_thrUnsub) return; // sudah aktif
+  if (_thrUnsub) return;
   _thrUnsub = onValue(ref(db, "thresholds"), snap => {
     if (snap.exists()) {
       _simThr = { ...DEFAULT_THRESHOLDS, ...snap.val() };
@@ -450,30 +469,14 @@ function _startThresholdListener() {
 }
 
 function _stopThresholdListener() {
-  if (_thrUnsub) {
-    _thrUnsub();
-    _thrUnsub = null;
-  }
+  if (_thrUnsub) { _thrUnsub(); _thrUnsub = null; }
 }
 
-/* ── Cooldown Anti-Spam WhatsApp ──────────────────────────────
-   Variabel ini mencatat kapan terakhir kali alert WA dikirim.
-   Gunakan nilai 0 agar pengiriman pertama selalu lolos.
-
-   WA_ALERT_COOLDOWN_MS = durasi cooldown dalam milidetik.
-   Default: 30 menit (1.800.000 ms).
-   Ubah ke 60000 (1 menit) untuk pengujian di laptop.
-──────────────────────────────────────────────────────────── */
-let lastAlertTime = 0;
-
-const WA_ALERT_COOLDOWN_MS = 60000; // GANTI UNTUK TESTING → 60000 (1 menit) saat uji coba 1800000
-
 async function startSimulator(intervalMs = 5000) {
-  // Aktifkan listener real-time — _simThr akan selalu sinkron dengan Firebase
   _startThresholdListener();
-  await _doSimWrite();                        // immediate first write
+  await _doSimWrite();
   _simTimer = setInterval(_doSimWrite, intervalMs);
-  console.log(`[Simulator] ▶ started (every ${intervalMs / 1000}s)`);
+  console.log(`[Simulator] ▶ started (every ${intervalMs / 1000}s) — hanya tulis data sensor, tidak kirim WA`);
 }
 
 function stopSimulator() {
@@ -483,56 +486,218 @@ function stopSimulator() {
   console.log("[Simulator] ■ stopped");
 }
 
+/**
+ * Tulis satu entry sensor ke Firebase. Hanya ini, tidak lebih.
+ * AlertMonitor di dashboard.html yang mendeteksi entry ini
+ * dan memutuskan apakah WA perlu dikirim.
+ */
 async function _doSimWrite() {
-  // 1. Generate nilai sensor baru (simulasi perubahan gradual)
   _simSuhu = Math.min(33, Math.max(24, _simSuhu + (Math.random() - 0.45) * 0.7));
   _simPh   = Math.min(7.5, Math.max(4.8, _simPh  + (Math.random() - 0.5)  * 0.09));
 
-  // 2. Tulis ke Firebase
   try {
     await writeSensorLog(_simSuhu, _simPh, _simThr);
   } catch (e) {
     console.warn("[Simulator] Gagal menulis ke Firebase:", e.message);
   }
 
-  // 3. Periksa apakah nilai melampaui ambang batas
-  const suhuLewatBatas = _simSuhu > _simThr.suhu_max;
-  const phLewatBatas   = _simPh < _simThr.ph_min || _simPh > _simThr.ph_max;
-
+  const suhuLewat = _simSuhu > _simThr.suhu_max;
+  const phLewat   = _simPh < _simThr.ph_min || _simPh > _simThr.ph_max;
   console.log(
-    `[Simulator] Suhu=${_simSuhu.toFixed(1)} (max=${_simThr.suhu_max}, lewat=${suhuLewatBatas}) | ` +
-    `pH=${_simPh.toFixed(2)} (min=${_simThr.ph_min}, max=${_simThr.ph_max}, lewat=${phLewatBatas})`
+    `[Simulator] Suhu=${_simSuhu.toFixed(1)} (max=${_simThr.suhu_max}, lewat=${suhuLewat}) | ` +
+    `pH=${_simPh.toFixed(2)} (min=${_simThr.ph_min}, max=${_simThr.ph_max}, lewat=${phLewat})`
   );
+  // Selesai. Tidak ada kode WA di bawah ini.
+  // AlertMonitor di dashboard.html yang mengurus evaluasi & pengiriman.
+}
 
-  if (!suhuLewatBatas && !phLewatBatas) {
-    // Kondisi normal — tidak ada yang perlu dilakukan
+/* ============================================================
+   GLOBAL COOLDOWN — disimpan di Firebase RTDB /system/last_wa_sent
+
+   MENGAPA DI FIREBASE, BUKAN VARIABEL JS LOKAL?
+   ─────────────────────────────────────────────
+   Variabel JS lokal hanya hidup di satu tab browser.
+   Jika N user buka dashboard bersamaan → N variabel lokal yang
+   masing-masing bernilai 0 → N WA dikirim untuk 1 event yang sama.
+
+   Dengan menyimpan timestamp di Firebase RTDB:
+   ✓ Semua tab & semua user baca/tulis ke node yang SAMA
+   ✓ Hanya 1 WA per jam, berapapun user aktif
+   ✓ Cooldown persist meski semua tab ditutup lalu dibuka lagi
+   ✓ Jika pengiriman gagal, timestamp di-reset ke 0 → retry otomatis
+
+   Path : /system/last_wa_sent  (Unix ms, integer)
+   Nilai: 0 = belum pernah kirim / cooldown di-reset
+============================================================ */
+
+const WA_COOLDOWN_MS   = 3600000;              // 1 jam penuh — jangan ubah sembarangan
+const COOLDOWN_FB_PATH = "system/last_wa_sent"; // path di RTDB
+
+/**
+ * Baca timestamp terakhir WA dikirim dari Firebase.
+ * Return 0 jika belum pernah ada atau terjadi error baca.
+ */
+async function _getGlobalLastSent() {
+  try {
+    const snap = await get(ref(db, COOLDOWN_FB_PATH));
+    return snap.exists() ? (snap.val() || 0) : 0;
+  } catch (e) {
+    console.warn("[Cooldown] Gagal baca dari Firebase:", e.message, "— anggap 0 (aman lanjut).");
+    return 0;
+  }
+}
+
+/**
+ * Tulis timestamp ke Firebase sebagai klaim cooldown.
+ * Dipanggil SEBELUM fetch ke Fonnte — ini adalah "optimistic lock"
+ * yang mencegah tab/user lain mengirim WA dalam selang waktu dekat.
+ * Pass 0 untuk reset (saat pengiriman gagal / 0 penerima).
+ */
+async function _setGlobalLastSent(timestampMs) {
+  try {
+    await set(ref(db, COOLDOWN_FB_PATH), timestampMs);
+  } catch (e) {
+    console.warn("[Cooldown] Gagal tulis ke Firebase:", e.message);
+  }
+}
+
+/* ============================================================
+   ALERT MONITOR  —  Pemantau real-time + trigger WA global
+
+   Gunakan di dashboard.html:
+     window.FB.startAlertMonitor();   // saat Firebase siap
+     window.FB.stopAlertMonitor();    // opsional saat unload
+
+   Alur lengkap setiap kali data sensor baru masuk:
+   1. Guard A: apakah data ini BARU (timestamp > listenerStart)?
+      → Tidak: abaikan (cegah spam saat halaman pertama dibuka)
+   2. Guard B: apakah ada parameter yang melampaui batas?
+      → Tidak: tidak ada tindakan
+   3. Guard C: apakah cooldown global sudah lewat 1 jam?
+      → Belum: log "masih dalam global cooldown 1 jam" & return
+   4. Klaim cooldown: tulis now ke /system/last_wa_sent
+      (tab/user lain yang masuk Guard C dalam selang detik yang sama
+       akan membaca nilai ini dan masuk cooldown)
+   5. Kirim WA via sendWhatsAppAlert()
+      → Gagal / 0 penerima: reset /system/last_wa_sent ke 0
+============================================================ */
+
+let _alertMonitorUnsub  = null; // unsub fungsi sensor listener
+let _alertThrUnsub      = null; // unsub fungsi threshold listener
+let _alertThr           = { ...DEFAULT_THRESHOLDS };
+let _alertListenerStart = 0;    // timestamp kapan listener dipasang
+
+/**
+ * Mulai monitor alert WA berbasis Firebase real-time listener.
+ * Aman dipanggil berkali-kali — hanya aktifkan sekali.
+ */
+function startAlertMonitor() {
+  if (_alertMonitorUnsub) {
+    console.log("[AlertMonitor] Sudah aktif, skip.");
     return;
   }
 
-  console.log("[Simulator] ⚠ Mendeteksi bahaya, menyiapkan WA...");
+  // Catat waktu SEBELUM subscribe.
+  // Semua data dengan timestamp ≤ nilai ini dianggap historis → diabaikan (Guard A).
+  // Ini mencegah spam saat halaman pertama dibuka karena Firebase onValue
+  // selalu mengirim snapshot data yang sudah ada di DB (bukan hanya data baru).
+  _alertListenerStart = Date.now();
+  console.log("[AlertMonitor] ⏱ Listener mulai:", new Date(_alertListenerStart).toLocaleTimeString("id-ID"));
 
-  // 4. Ada pelanggaran ambang batas → cek cooldown
-  const now           = Date.now();
-  const sisaCooldown  = WA_ALERT_COOLDOWN_MS - (now - lastAlertTime);
+  // [1] Sinkronkan threshold secara real-time
+  _alertThrUnsub = onValue(ref(db, "thresholds"), snap => {
+    _alertThr = snap.exists()
+      ? { ...DEFAULT_THRESHOLDS, ...snap.val() }
+      : { ...DEFAULT_THRESHOLDS };
+    console.log("[AlertMonitor] ↺ Threshold diperbarui:", _alertThr);
+  });
 
-  if (sisaCooldown > 0) {
-    const detikSisa = Math.ceil(sisaCooldown / 1000);
-    console.log(`[Simulator] ⏳ WA masih cooldown — sisa ${detikSisa} detik. Alert dilewati.`);
+  // [2] Pantau entry sensor terbaru — onValue terpicu tiap ada update baru
+  const q = query(ref(db, "log_sensor"), orderByChild("timestamp"), limitToLast(1));
+  _alertMonitorUnsub = onValue(q, snap => {
+    snap.forEach(child => {
+      _evaluateAndSendAlert({ key: child.key, ...child.val() });
+    });
+  });
+
+  console.log("[AlertMonitor] ▶ Aktif — global cooldown 1 jam via /system/last_wa_sent");
+}
+
+/** Hentikan alert monitor dan bersihkan semua listener */
+function stopAlertMonitor() {
+  if (_alertMonitorUnsub) { _alertMonitorUnsub(); _alertMonitorUnsub = null; }
+  if (_alertThrUnsub)     { _alertThrUnsub();     _alertThrUnsub     = null; }
+  _alertListenerStart = 0;
+  console.log("[AlertMonitor] ■ dihentikan.");
+}
+
+/**
+ * Evaluasi satu entry sensor. Kirim WA hanya jika ketiga guard lolos.
+ *
+ * Guard A — Timestamp guard (anti spam saat halaman load)
+ * Guard B — Threshold check (hanya kirim jika ada yang kritis)
+ * Guard C — Global cooldown via Firebase (anti spam multi-client)
+ *
+ * @param {{suhu:number, ph:number, timestamp:number, key:string}} data
+ */
+async function _evaluateAndSendAlert(data) {
+  if (typeof data.suhu !== "number" || typeof data.ph !== "number") return;
+
+  // ── Guard A: Skip data historis ───────────────────────────────────────
+  // Firebase onValue selalu mengirim snapshot data terakhir saat listener
+  // dipasang (termasuk saat refresh halaman). Data itu bisa jam lalu tapi
+  // masih melebihi threshold → spam.
+  // Fix: hanya proses data yang timestamp-nya lebih baru dari listenerStart.
+  if (_alertListenerStart > 0 && (data.timestamp || 0) <= _alertListenerStart) {
+    const selisihDetik = ((_alertListenerStart - (data.timestamp || 0)) / 1000).toFixed(1);
+    console.log(
+      `[AlertMonitor] ⏭ Guard A: skip data historis ` +
+      `(data.timestamp=${data.timestamp}, listenerStart=${_alertListenerStart}, selisih=${selisihDetik}s)`
+    );
     return;
   }
 
-  // 5. Cooldown sudah lewat → tandai waktu SEBELUM await (cegah race condition)
-  lastAlertTime = now;
-  console.log("[Simulator] ✅ Cooldown sudah lewat — melanjutkan pengiriman WA.");
+  // ── Guard B: Cek threshold ────────────────────────────────────────────
+  const thr       = _alertThr;
+  const suhuLewat = data.suhu > thr.suhu_max;
+  const phLewat   = data.ph < thr.ph_min || data.ph > thr.ph_max;
+  if (!suhuLewat && !phLewat) return; // kondisi normal, tidak ada tindakan
 
-  // 6. Susun teks pesan peringatan yang informatif
+  // ── Guard C: Global cooldown dari Firebase ────────────────────────────
+  // Baca KAPAN terakhir kali WA berhasil dikirim — nilainya sama untuk
+  // SEMUA tab dan SEMUA user karena tersimpan di Firebase, bukan memori lokal.
+  // Inilah yang membuat sistem anti-spam multi-client bekerja.
+  const now      = Date.now();
+  const lastSent = await _getGlobalLastSent();
+  const sisaMs   = WA_COOLDOWN_MS - (now - lastSent);
+
+  if (sisaMs > 0) {
+    const mntSisa = Math.ceil(sisaMs / 60000);
+    console.log(
+      `[AlertMonitor] ⏳ Guard C: Peringatan kritis terdeteksi, ` +
+      `namun masih dalam masa global cooldown 1 jam (sisa ~${mntSisa} menit). Alert dilewati.`
+    );
+    return;
+  }
+
+  // ── Klaim cooldown (Optimistic Lock) ─────────────────────────────────
+  // Tulis timestamp ke Firebase SEBELUM memanggil Fonnte.
+  // Jika dua tab kebetulan sama-sama lolos Guard C dalam selang <1 detik,
+  // keduanya akan menulis ke Firebase — tab yang menulis lebih dulu "menang",
+  // tab kedua pada evaluasi berikutnya akan baca nilai baru dan masuk cooldown.
+  // Ini tidak 100% atomic (perlu Firebase Transactions / Cloud Functions untuk
+  // garansi penuh), tapi sangat efektif di skala proyek ini.
+  await _setGlobalLastSent(now);
+  console.log("[AlertMonitor] 🔒 Cooldown diklaim: menulis", now, "ke /system/last_wa_sent");
+
+  // ── Susun pesan peringatan ────────────────────────────────────────────
   const baris = [];
-  if (suhuLewatBatas) {
-    baris.push(`🌡️ Suhu: ${_simSuhu.toFixed(1)}°C (Maks: ${_simThr.suhu_max}°C)`);
+  if (suhuLewat) {
+    baris.push(`🌡️ Suhu: ${data.suhu.toFixed(1)}°C (Maks: ${thr.suhu_max}°C)`);
   }
-  if (phLewatBatas) {
-    const keterangan = _simPh < _simThr.ph_min ? "terlalu rendah" : "terlalu tinggi";
-    baris.push(`💧 pH: ${_simPh.toFixed(2)} (${keterangan}, batas aman: ${_simThr.ph_min}–${_simThr.ph_max})`);
+  if (phLewat) {
+    const ket = data.ph < thr.ph_min ? "terlalu rendah" : "terlalu tinggi";
+    baris.push(`💧 pH: ${data.ph.toFixed(2)} (${ket}, batas aman: ${thr.ph_min}–${thr.ph_max})`);
   }
 
   const pesan =
@@ -542,20 +707,87 @@ async function _doSimWrite() {
     `Segera cek lokasi!\n` +
     `Waktu: ${formatDateTime(now)}`;
 
-  // 7. Kirim notifikasi WhatsApp
+  console.log("[AlertMonitor] ⚠ Data baru melampaui batas — mengirim WA...");
+
   try {
-    console.log("[Simulator] Memanggil sendWhatsAppAlert()...");
     const result = await sendWhatsAppAlert(pesan);
     if (result.sent > 0) {
-      console.log(`[Simulator] ✓ Alert WA berhasil terkirim ke ${result.sent} penerima. Cooldown ${WA_ALERT_COOLDOWN_MS / 1000}s dimulai.`);
+      console.log(
+        `[AlertMonitor] ✓ WA terkirim ke ${result.sent} penerima. ` +
+        `Global cooldown 1 jam aktif via /system/last_wa_sent.`
+      );
     } else {
-      console.warn("[Simulator] ⚠ sendWhatsAppAlert() selesai tapi 0 penerima (cek filter role & no_hp di atas).");
+      // 0 penerima valid (bukan error jaringan) → reset cooldown agar bisa retry
+      await _setGlobalLastSent(0);
+      console.warn("[AlertMonitor] ⚠ 0 penerima — cooldown di-reset ke 0. Cek no_hp & role di Firebase.");
     }
   } catch (e) {
-    // Jika pengiriman gagal, reset lastAlertTime agar bisa dicoba lagi di siklus berikutnya
-    lastAlertTime = 0;
-    console.error("[Simulator] ❌ Gagal mengirim alert WhatsApp:", e.message, e);
+    // Error jaringan / Fonnte down → reset cooldown agar bisa retry
+    await _setGlobalLastSent(0);
+    console.error("[AlertMonitor] ❌ Gagal kirim WA:", e.message, "— cooldown di-reset ke 0.");
   }
+}
+
+/* ============================================================
+   UI HELPERS — PROFIL PENGGUNA (Avatar Dinamis)
+
+   Fungsi ini memperbarui tampilan avatar di semua halaman
+   berdasarkan data user (nama + role) dari Firebase Auth/RTDB.
+
+   Cara pakai:
+   • Otomatis: AuthGuard._applyUI() memanggil ini via localStorage session.
+   • Manual  : window.FB.updateUserProfileUI(nama, role)
+               → panggil setelah Firebase Auth + getUserProfile() selesai.
+
+   Selector avatar yang didukung (seluruh halaman):
+   • #avatarEl    → dashboard.html (id unik)
+   • .avatar      → dashboard.html (class)
+   • .avatar-sm   → laporan.html, parameter.html, status.html
+   • .avatar-chip → akun.html
+============================================================ */
+
+const AVATAR_ROLE_COLORS = {
+  "pekerja":  "#22C55E",  // 🟢 Hijau
+  "asisten":  "#3B82F6",  // 🔵 Biru
+  "manajer":  "#F59E0B",  // 🟠 Amber
+  "admin it": "#6366F1",  // 🟣 Indigo
+  "admin":    "#6366F1",  // 🟣 Indigo (alias key "admin" di ROLES)
+};
+
+/**
+ * Perbarui semua elemen avatar di halaman saat ini.
+ *
+ * @param {string} nama  Nama lengkap dari /users/{uid}/nama
+ * @param {string} role  Role dari /users/{uid}/role (case-insensitive)
+ */
+function updateUserProfileUI(nama, role) {
+  const initial = (nama || "?").charAt(0).toUpperCase();
+  const roleKey = (role || "").trim().toLowerCase();
+
+  // Cari warna: exact match dulu, lalu partial untuk role multi-kata
+  let color = AVATAR_ROLE_COLORS[roleKey];
+  if (!color) {
+    for (const [key, val] of Object.entries(AVATAR_ROLE_COLORS)) {
+      if (roleKey.includes(key)) { color = val; break; }
+    }
+  }
+  if (!color) color = "#6B7280"; // abu-abu jika role tidak dikenal
+
+  document.querySelectorAll("#avatarEl, .avatar, .avatar-sm, .avatar-chip").forEach(el => {
+    el.textContent      = initial;
+    el.style.background = color;
+  });
+
+  const profileNameEl = document.getElementById("profileName");
+  if (profileNameEl) profileNameEl.textContent = nama || role || "—";
+
+  const greetNameEl = document.getElementById("greetName");
+  if (greetNameEl) greetNameEl.textContent = nama || role || "—";
+
+  const greetingEl = document.querySelector(".page-greeting");
+  if (greetingEl) greetingEl.innerHTML = `Halo, <strong>${nama || role || "—"}</strong> 👋`;
+
+  console.log(`[ProfileUI] ✓ Avatar → inisial="${initial}", role="${roleKey}", warna="${color}"`);
 }
 
 /* ============================================================
@@ -569,6 +801,8 @@ window.FB = {
   getUsers, addUser, updateUser, deleteUser,
   getThresholds, saveThresholds, subscribeThresholds,
   sendWhatsAppAlert,
+  startAlertMonitor, stopAlertMonitor,
+  updateUserProfileUI,
   aggregateByDay, computeSummary,
   todayISO, daysAgoISO, formatDateLabel, formatDateTime,
   startSimulator, stopSimulator,
@@ -576,4 +810,4 @@ window.FB = {
   loginUser, getUserProfile, signOutUser, subscribeAuthState,
 };
 
-console.log("[Firebase] ✓ window.FB bridge ready");
+console.log("[Firebase] ✓ window.FB bridge ready — global cooldown via /system/last_wa_sent");

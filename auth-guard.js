@@ -29,28 +29,28 @@ const AuthGuard = (() => {
       defaultPage:  'status.html',
       label:        'Admin IT',
       avatarInitial:'A',
-      avatarColor:  '#ea580c',   // orange
+      avatarColor:  '#6366F1',   // 🟣 Indigo (sesuai spec)
     },
     'manajer': {
       allowedPages: ['dashboard.html', 'laporan.html', 'parameter.html', 'status.html'],
       defaultPage:  'dashboard.html',
       label:        'Manajer',
       avatarInitial:'M',
-      avatarColor:  '#2563eb',   // blue
+      avatarColor:  '#F59E0B',   // 🟠 Amber (sesuai spec)
     },
     'asisten': {
       allowedPages: ['dashboard.html', 'laporan.html', 'parameter.html'],
       defaultPage:  'dashboard.html',
       label:        'Asisten Kebun',
       avatarInitial:'A',
-      avatarColor:  '#16a34a',   // green
+      avatarColor:  '#3B82F6',   // 🔵 Biru (sesuai spec)
     },
     'pekerja': {
       allowedPages: ['dashboard.html'],
       defaultPage:  'dashboard.html',
       label:        'Pekerja Lahan',
       avatarInitial:'P',
-      avatarColor:  '#6b7280',   // gray
+      avatarColor:  '#22C55E',   // 🟢 Hijau (sesuai spec)
     },
   };
 
@@ -199,8 +199,13 @@ const AuthGuard = (() => {
     _setTextIfExists('greetName',   session.nama || roleCfg.label);
 
     // Avatar initial
+    // Selector mencakup SEMUA variasi class/id avatar di seluruh halaman:
+    //   #avatarEl   → dashboard.html (id unik)
+    //   .avatar     → dashboard.html (class)
+    //   .avatar-sm  → laporan.html, parameter.html, status.html
+    //   .avatar-chip→ akun.html
     const avatarEls = document.querySelectorAll(
-      '#avatarEl, .avatar, .avatar-chip'
+      '#avatarEl, .avatar, .avatar-sm, .avatar-chip'
     );
     avatarEls.forEach(el => {
       el.textContent = (session.nama || roleCfg.label).charAt(0).toUpperCase();

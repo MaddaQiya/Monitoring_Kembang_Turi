@@ -350,47 +350,50 @@
   }
 
   /* ── 8. Render summary cards dari array daily rows ── */
-  function renderSummary(dailyRows) {
-    if (!dailyRows || !dailyRows.length) {
-      document.getElementById('avgSuhu').innerHTML     = `0.0<span class="unit">°C</span>`;
-      document.getElementById('avgSuhuSub').textContent = 'Tidak ada data';
-      document.getElementById('avgPh').textContent      = '0.00';
-      document.getElementById('avgPhSub').textContent   = 'Tidak ada data';
-      document.getElementById('totalAlert').innerHTML   = `0<span class="unit">x</span>`;
-      document.getElementById('totalAlertSub').textContent = 'Tidak ada anomali';
-      document.getElementById('totalAlertSub').className = 'sc-sub sub-ok';
-      return;
-    }
+function renderSummary(dailyRows, thr) {
+  // Gunakan threshold aktif; fallback ke DEFAULT jika belum ada
+  const activeThr = thr || window._laporanThr || { suhu_max: 30.0, ph_min: 5.5, ph_max: 6.5 };
 
-    // Rata-rata dari daily averages (weighted by day)
-    const suhuAvgs   = dailyRows.map(d => d.suhuAvg).filter(v => typeof v === 'number');
-    const phAvgs     = dailyRows.map(d => d.phAvg).filter(v => typeof v === 'number');
-    const totalAlert = dailyRows.reduce((sum, d) => sum + (d.alerts || 0), 0);
-
-    const grandAvgSuhu = suhuAvgs.length ? (suhuAvgs.reduce((a,b)=>a+b,0) / suhuAvgs.length) : 0;
-    const grandAvgPh   = phAvgs.length   ? (phAvgs.reduce((a,b)=>a+b,0) / phAvgs.length)     : 0;
-
-    // Suhu
-    document.getElementById('avgSuhu').innerHTML = `${grandAvgSuhu.toFixed(1)}<span class="unit">°C</span>`;
-    const suhuOk = grandAvgSuhu <= 30;
-    document.getElementById('avgSuhuSub').textContent = suhuOk ? '↗ Dalam kondisi ideal' : '↗ Perlu pemantauan';
-    document.getElementById('avgSuhuSub').className   = `sc-sub ${suhuOk ? 'sub-ok' : 'sub-err'}`;
-
-    // pH
-    document.getElementById('avgPh').textContent = grandAvgPh.toFixed(2);
-    const phOk = grandAvgPh >= 5.5 && grandAvgPh <= 6.5;
-    document.getElementById('avgPhSub').textContent = phOk ? '↗ Nutrisi stabil' : '↗ pH di luar batas';
-    document.getElementById('avgPhSub').className   = `sc-sub ${phOk ? 'sub-ok' : 'sub-err'}`;
-
-    // Anomali
-    document.getElementById('totalAlert').innerHTML = `${totalAlert}<span class="unit">x</span>`;
-    const daysWithAlert = dailyRows.filter(d => (d.alerts || 0) > 0).length;
-    document.getElementById('totalAlertSub').textContent =
-      totalAlert === 0
-        ? 'Semua hari normal 🎉'
-        : `Terjadi pada ${daysWithAlert} hari dari ${dailyRows.length} hari`;
-    document.getElementById('totalAlertSub').className = `sc-sub ${totalAlert === 0 ? 'sub-ok' : 'sub-err'}`;
+  if (!dailyRows || !dailyRows.length) {
+    document.getElementById('avgSuhu').innerHTML      = `0.0<span class="unit">°C</span>`;
+    document.getElementById('avgSuhuSub').textContent = 'Tidak ada data';
+    document.getElementById('avgPh').textContent      = '0.00';
+    document.getElementById('avgPhSub').textContent   = 'Tidak ada data';
+    document.getElementById('totalAlert').innerHTML   = `0<span class="unit">x</span>`;
+    document.getElementById('totalAlertSub').textContent = 'Tidak ada anomali';
+    document.getElementById('totalAlertSub').className   = 'sc-sub sub-ok';
+    return;
   }
+
+  // Rata-rata dari daily averages
+  const suhuAvgs   = dailyRows.map(d => d.suhuAvg).filter(v => typeof v === 'number');
+  const phAvgs     = dailyRows.map(d => d.phAvg).filter(v => typeof v === 'number');
+  const totalAlert = dailyRows.reduce((sum, d) => sum + (d.alerts || 0), 0);
+
+  const grandAvgSuhu = suhuAvgs.length ? (suhuAvgs.reduce((a,b)=>a+b,0) / suhuAvgs.length) : 0;
+  const grandAvgPh   = phAvgs.length   ? (phAvgs.reduce((a,b)=>a+b,0) / phAvgs.length)     : 0;
+
+  // Suhu — pakai activeThr.suhu_max, bukan angka hardcode
+  document.getElementById('avgSuhu').innerHTML = `${grandAvgSuhu.toFixed(1)}<span class="unit">°C</span>`;
+  const suhuOk = grandAvgSuhu <= activeThr.suhu_max;
+  document.getElementById('avgSuhuSub').textContent = suhuOk ? '↗ Dalam kondisi ideal' : '↗ Perlu pemantauan';
+  document.getElementById('avgSuhuSub').className   = `sc-sub ${suhuOk ? 'sub-ok' : 'sub-err'}`;
+
+  // pH — pakai activeThr.ph_min dan activeThr.ph_max, bukan angka hardcode
+  document.getElementById('avgPh').textContent = grandAvgPh.toFixed(2);
+  const phOk = grandAvgPh >= activeThr.ph_min && grandAvgPh <= activeThr.ph_max;
+  document.getElementById('avgPhSub').textContent = phOk ? '↗ Nutrisi stabil' : '↗ pH di luar batas';
+  document.getElementById('avgPhSub').className   = `sc-sub ${phOk ? 'sub-ok' : 'sub-err'}`;
+
+  // Anomali
+  document.getElementById('totalAlert').innerHTML = `${totalAlert}<span class="unit">x</span>`;
+  const daysWithAlert = dailyRows.filter(d => (d.alerts || 0) > 0).length;
+  document.getElementById('totalAlertSub').textContent =
+    totalAlert === 0
+      ? 'Semua hari normal 🎉'
+      : `Terjadi pada ${daysWithAlert} hari dari ${dailyRows.length} hari`;
+  document.getElementById('totalAlertSub').className = `sc-sub ${totalAlert === 0 ? 'sub-ok' : 'sub-err'}`;
+}
 
   /* ── 9. Skeleton saat loading ── */
   function skeleton() {
@@ -411,58 +414,62 @@
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 
-  /* ── 11. LOAD DATA: ambil semua log, filter tanggal, lalu aggregateByDay ── */
-  async function loadReportData() {
-    skeleton();
+ /* ── 11. LOAD DATA: ambil semua log, filter tanggal, lalu aggregateByDay ── */
+async function loadReportData() {
+  skeleton();
 
-    const fromStr = document.getElementById('dateFrom').value;
-    const toStr   = document.getElementById('dateTo').value;
-    if (!fromStr || !toStr) {
-      showToast('❌ Tanggal dari/sampai wajib diisi.');
-      renderTable([]);
-      renderSummary([]);
-      return;
-    }
-
-    try {
-      const FB = await waitForFB();
-
-      // Konversi ke ms — pakai WIB agar konsisten dengan fungsi aggregateByDay
-      const fromMs = new Date(fromStr + 'T00:00:00+07:00').getTime();
-      const toMs   = new Date(toStr   + 'T23:59:59.999+07:00').getTime();
-
-      // Ambil semua log mentah (tidak pakai index Firebase, aman untuk semua Rules)
-      const allRows  = await FB.getAllLogsRaw();
-      // Filter sesuai rentang tanggal di client-side
-      const filtered = FB.filterLogsByRange(allRows, fromMs, toMs);
-      // Agregasi: log per-detik → ringkasan per hari
-      const daily    = FB.aggregateByDay(filtered);
-
-      currentDailyRows = daily;
-
-      renderTable(daily);
-      renderSummary(daily);
-      updatePeriodText();
-
-      showToast(daily.length
-        ? `✅ Data ${daily.length} hari berhasil dimuat (${filtered.length} log)`
-        : 'ℹ️ Belum ada data pada periode ini.'
-      );
-
-    } catch (e) {
-      console.error('[Laporan] Gagal memuat data:', e);
-      currentDailyRows = [];
-      document.getElementById('tableBody').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--r500);">
-        <i class="fa-solid fa-circle-exclamation" style="display:block;font-size:20px;margin-bottom:6px;"></i>
-        Gagal memuat data: ${e.message}
-      </td></tr>`;
-      renderSummary([]);
-      document.getElementById('tableRowCount').textContent = '';
-      showToast('❌ Gagal memuat data dari server.');
-    }
+  const fromStr = document.getElementById('dateFrom').value;
+  const toStr   = document.getElementById('dateTo').value;
+  if (!fromStr || !toStr) {
+    showToast('❌ Tanggal dari/sampai wajib diisi.');
+    renderTable([]);
+    renderSummary([], window._laporanThr);
+    return;
   }
 
-  function applyFilter() { loadReportData(); }
+  try {
+    const FB = await waitForFB();
+
+    // Ambil threshold terkini dari Firebase SEBELUM agregasi
+    // Disimpan ke window._laporanThr agar renderSummary bisa pakai nilai yang sama
+    const thr = await FB.getThresholds();
+    window._laporanThr = thr;
+    console.log('[Laporan] ✓ Threshold aktif:', thr);
+
+    // Konversi ke ms — pakai WIB agar konsisten dengan fungsi aggregateByDay
+    const fromMs = new Date(fromStr + 'T00:00:00+07:00').getTime();
+    const toMs   = new Date(toStr   + 'T23:59:59.999+07:00').getTime();
+
+    // Ambil semua log mentah, filter rentang tanggal, agregasi per hari
+    const allRows  = await FB.getAllLogsRaw();
+    const filtered = FB.filterLogsByRange(allRows, fromMs, toMs);
+    const daily    = FB.aggregateByDay(filtered, thr); // ← kirim thr ke sini
+
+    currentDailyRows = daily;
+
+    renderTable(daily);
+    renderSummary(daily, thr); // ← kirim thr ke sini juga
+    updatePeriodText();
+
+    showToast(daily.length
+      ? `✅ Data ${daily.length} hari berhasil dimuat (${filtered.length} log)`
+      : 'ℹ️ Belum ada data pada periode ini.'
+    );
+
+  } catch (e) {
+    console.error('[Laporan] Gagal memuat data:', e);
+    currentDailyRows = [];
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--r500);">
+      <i class="fa-solid fa-circle-exclamation" style="display:block;font-size:20px;margin-bottom:6px;"></i>
+      Gagal memuat data: ${e.message}
+    </td></tr>`;
+    renderSummary([], window._laporanThr);
+    document.getElementById('tableRowCount').textContent = '';
+    showToast('❌ Gagal memuat data dari server.');
+  }
+}
+
+function applyFilter() { loadReportData(); }
 
   /* ── 12. Update teks periode di header PDF ── */
   function updatePeriodText() {

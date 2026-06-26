@@ -571,6 +571,13 @@
         console.log("[Dashboard] ↺ Threshold diperbarui:", _currentThr);
       });
 
+      /* ── STEP 0b: Aktifkan Alert Monitor WA ── */
+      // Monitor ini subscribe ke log_sensor terbaru via Firebase real-time,
+      // mengevaluasi threshold, lalu mengirim notif WA ke pekerja/asisten
+      // yang terdaftar di /users. TIDAK bergantung pada simulator.
+      FB.startAlertMonitor();
+      console.log("[Dashboard] ✓ Alert Monitor WA diaktifkan.");
+
       /* ── STEP 1: Load 20 data historis untuk mengisi chart ── */
       const recent = await FB.getRecentLogs(MAX_POINTS);
 
